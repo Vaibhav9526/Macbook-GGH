@@ -1,0 +1,85 @@
+import { connectorSummary } from "@jargon/ui/features/connectors/ConnectorDetailPanel";
+import { CONNECTOR_LISTINGS } from "@jargon/ui/features/connectors/connector-catalog";
+import { isConnectorId } from "@jargon/ui/features/connectors/connectors";
+import {
+  MarketplaceSuggestionCard,
+  type MarketplaceSuggestionState,
+} from "@jargon/ui/features/conversation/MarketplaceSuggestionCard";
+import { useText } from "@jargon/ui/text";
+import { createMemo } from "solid-js";
+import type { ConnectorRegistry } from "../connectors/connector-registry";
+import { MARKETPLACE_PLUGINS } from "../settings/marketplace-plugin-catalog";
+import { localizedPlugin } from "../settings/marketplace-plugin-text";
+import { dismissMarketplaceSuggestion, marketplaceSuggestionDismissed } from "./marketplace-suggestion-dismissals";
+
+export interface MarketplaceSuggestionChatCardProps {
+  messageId: string;
+  appId: string;
+  /** The connectors of the server on screen. Without it, a connector card has no action. */
+  connectors?: ConnectorRegistry | undefined;
+  onOpenMarketplaceApp?: ((request: { appId: string; connect: boolean }) => void) | undefined;
+}
+
+/** True when this client can draw a card for the app: a catalog plugin, or a connector. */
+export function marketplaceSuggestionKnown(appId: string): boolean {
+  return isConnectorId(appId) || MARKETPLACE_PLUGINS.some((plugin) => plugin.slug === appId);
+}
+
+/**
+ * The Marketplace app an agent suggested in this chat. Connect and the name open the app in
+ * Marketplace, where the connect step and its dialogs run.
+ */
+export function MarketplaceSuggestionChatCard(props: MarketplaceSuggestionChatCardProps) {
+  const { t } = useText();
+  const plugin = createMemo(() => MARKETPLACE_PLUGINS.find((candidate) => candidate.slug === props.appId));
+  const connector = () => {
+    const id = props.appId;
+    return isConnectorId(id) ? (props.connectors?.get(id) ?? { id, access: "hidden" as const }) : undefined;
+  };
+  const listing = () => {
+    const entry = connector();
+    return entry ? CONNECTOR_LISTINGS[entry.id] : undefined;
+  };
+  const description = () => {
+    const known = listing();
+    if (known) return t(known.tagline);
+    const found = plugin();
+    return found ? localizedPlugin(found, t).tagline : "";
+  };
+  const state = (): MarketplaceSuggestionState => {
+    const entry = connector();
+    if (!entry) return "available";
+    if (entry.access === "loading") return "busy";
+    if (entry.access !== "available") return "unavailable";
+    if (entry.controller.busy()) return "busy";
+    const { status } = connectorSummary(entry.controller.detail, t);
+    if (status === "connected") return "connected";
+    if (status === "connecting") return "busy";
+    return status === "attention" ? "attention" : "available";
+  };
+  const name = () => {
+    const known = listing();
+    return known ? t(known.title) : (plugin()?.name ?? props.appId);
+  };
+  const open = (connect: boolean) => props.onOpenMarketplaceApp?.({ appId: props.appId, connect });
+  return (
+    <MarketplaceSuggestionCard
+      kind="app"
+      name={name()}
+      description={description()}
+      iconUrl={plugin()?.iconUrl ?? null}
+      mark={listing()?.Mark()}
+      state={state()}
+      unavailableText={
+        connector()?.access === "local-only"
+          ? t("chat.suggestion.localOnly", { name: name() })
+          : t("chat.suggestion.unavailable", { name: name() })
+      }
+      dismissed={marketplaceSuggestionDismissed(props.messageId)}
+      onConnect={props.onOpenMarketplaceApp ? () => open(true) : undefined}
+      onOpenDetails={props.onOpenMarketplaceApp && state() !== "unavailable" ? () => open(false) : undefined}
+      onDismiss={() => dismissMarketplaceSuggestion(props.messageId, true)}
+      onRestore={() => dismissMarketplaceSuggestion(props.messageId, false)}
+    />
+  );
+}

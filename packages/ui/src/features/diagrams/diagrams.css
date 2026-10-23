@@ -1,0 +1,1438 @@
+/* The diagram view: header, canvas, cards, edges, the assistant over the canvas and the run panel. */
+
+.diagram-view {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  background: var(--jargon-bg-canvas);
+}
+
+/* What the Routines view says instead of a canvas: it is loading, it failed, or the server is remote. */
+.diagram-flows-notice {
+  align-items: center;
+  justify-content: center;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+}
+
+/* The Bloub overflows its box. An auto grid track grows to the Bloub and starts at the box's top,
+   and its percentage height then resolves against that track, so the Bloub grows taller than wide
+   and sits low. One track the size of the box keeps every avatar here centred on its line. */
+.diagram-view .agent-avatar {
+  grid-template: 100% / 100%;
+}
+
+/* The same height, avatar and name as the agent chat header, so switching views keeps the bar. */
+.diagram-view-header {
+  display: flex;
+  height: 38px;
+  flex: none;
+  align-items: center;
+  gap: var(--jargon-space-1-5);
+  border-bottom: 1px solid var(--jargon-border);
+  padding: 0 var(--jargon-space-3);
+}
+
+/* The chevron that closes routine details has no open fill: it is a close action, not a lit toggle. */
+.diagram-view .diagram-view-header .header-panel-toggle[aria-expanded="true"]:not(:hover) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--jargon-text-muted);
+}
+
+.diagram-view-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  place-items: center;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-accent-soft);
+  color: var(--jargon-accent-text);
+}
+
+.diagram-view-avatar.agent-avatar {
+  width: 18px;
+  height: 18px;
+}
+
+.diagram-view-icon svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+}
+
+/* The name keeps its room; the routine picker beside it is the part that narrows. */
+.diagram-view-title {
+  max-width: 32ch;
+  flex: none;
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--jargon-text-md);
+  font-weight: var(--jargon-weight-regular);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-view-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-1);
+  margin-left: auto;
+}
+
+/* As with the chat's browser sidebar: the routine details panel appears at once at the right edge, and
+   the canvas eases its padding to make room. */
+.diagram-view-body {
+  --diagram-inspector-width: 340px;
+
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  transition: padding-right var(--panel-resize-duration, var(--jargon-duration-overlay)) cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.diagram-view-body[data-inspector="open"] {
+  padding-right: var(--diagram-inspector-width);
+}
+
+.diagram-view-chat {
+  position: absolute;
+  bottom: var(--jargon-space-4);
+  left: var(--jargon-space-4);
+  z-index: 2;
+  width: min(360px, calc(100% - var(--jargon-space-8)));
+  /* The folded panel keeps its box, so the canvas under it still takes the pointer. */
+  pointer-events: none;
+}
+
+/* Canvas */
+
+.diagram-board {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.diagram-board-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  outline: 0;
+  background-color: var(--jargon-bg-canvas);
+  background-image: radial-gradient(circle at 1px 1px, var(--jargon-border-strong) 1px, transparent 0);
+  background-position: var(--diagram-grid-x) var(--diagram-grid-y);
+  background-size: var(--diagram-grid-size) var(--diagram-grid-size);
+  cursor: grab;
+  touch-action: none;
+}
+
+.diagram-board-viewport:focus-visible {
+  box-shadow: inset var(--jargon-focus-ring);
+}
+
+.diagram-board-viewport:is([data-panning], [data-dragging]) {
+  cursor: grabbing;
+}
+
+.diagram-board-world {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.diagram-board-world[data-settling] {
+  transition: transform var(--jargon-duration-normal) var(--jargon-ease-out);
+}
+
+.diagram-board-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  max-width: 280px;
+  gap: var(--jargon-space-1);
+  translate: -50% -50%;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+  pointer-events: none;
+  text-align: center;
+}
+
+.diagram-board-empty strong {
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-lg);
+}
+
+.diagram-board-empty p {
+  margin: 0;
+}
+
+/* The right-click menu's trigger wraps the viewport without a box of its own. */
+.diagram-board-menu-area {
+  display: contents;
+}
+
+.diagram-canvas-menu-avatar.agent-avatar {
+  width: 20px;
+  height: 20px;
+  grid-template: 100% / 100%;
+}
+
+/* An agent row has a name and a title, so it gets more room than a one-line menu row. */
+.ui-action-menu.diagram-canvas-agents:not([data-menu-layout="grid"]) [role="menuitem"] {
+  height: auto;
+  gap: var(--jargon-space-3);
+  padding-block: var(--jargon-space-2);
+}
+
+.diagram-canvas-menu-agent {
+  display: grid;
+  min-width: 0;
+  gap: var(--jargon-space-0-5);
+  line-height: var(--jargon-leading-md);
+}
+
+.diagram-canvas-menu-agent small {
+  overflow: hidden;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A new agent, asked for at the spot the user right-clicked and kept inside the canvas. */
+.diagram-new-agent {
+  position: absolute;
+  top: clamp(
+    var(--jargon-space-2),
+    var(--diagram-new-agent-y),
+    calc(100% - var(--diagram-new-agent-height, 188px) - var(--jargon-space-2))
+  );
+  left: clamp(var(--jargon-space-2), var(--diagram-new-agent-x), calc(100% - 288px));
+  z-index: 3;
+  display: grid;
+  width: 280px;
+  gap: var(--jargon-space-2);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-overlay);
+  box-shadow:
+    0 0 0 1px var(--jargon-border),
+    var(--jargon-shadow-overlay);
+  backdrop-filter: blur(16px);
+  padding: var(--jargon-space-3);
+  font-size: var(--jargon-text-sm);
+}
+
+.diagram-new-agent-header {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  font-weight: var(--jargon-weight-medium);
+  user-select: none;
+}
+
+.diagram-new-agent-avatar.agent-avatar {
+  width: 24px;
+  height: 24px;
+  grid-template: 100% / 100%;
+}
+
+/* The model field, drawn as the inputs above it are: their height, edge and fill. */
+.diagram-new-agent .provider-model-trigger-field {
+  height: var(--jargon-control-sm);
+  min-height: var(--jargon-control-sm);
+  border: 1px solid var(--jargon-border-strong);
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-control);
+  box-shadow: none;
+  padding-inline: var(--jargon-space-2);
+  font-size: var(--jargon-text-sm);
+}
+
+.diagram-new-agent .provider-model-trigger-field:hover:not(:disabled),
+.diagram-new-agent .provider-model-trigger-field[aria-expanded="true"] {
+  border-color: var(--jargon-border-strong);
+  background: var(--jargon-bg-control);
+}
+
+.diagram-new-agent .provider-model-trigger-field:focus-visible {
+  border-color: var(--jargon-border-focus);
+  outline: none;
+  box-shadow: var(--jargon-focus-ring);
+}
+
+.diagram-new-agent-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--jargon-space-1);
+}
+
+/* Zoom in, zoom out and fit, as a column of separate square buttons. */
+.diagram-board-zoom {
+  position: absolute;
+  right: var(--jargon-space-4);
+  bottom: var(--jargon-space-4);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--jargon-space-1-5);
+}
+
+.diagram-board-zoom .ui-button {
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-overlay);
+  box-shadow: var(--jargon-shadow-raised);
+}
+
+.diagram-board-zoom .ui-button svg {
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+  color: var(--jargon-text-muted);
+}
+
+.diagram-board-zoom .ui-button:hover svg {
+  color: var(--jargon-text-primary);
+}
+
+/* Below the routine picker, which holds the top centre of the canvas. */
+.diagram-board-status {
+  position: absolute;
+  top: calc(var(--jargon-space-4) + var(--jargon-control-sm) + var(--jargon-space-2));
+  left: 50%;
+  z-index: 2;
+  max-width: min(420px, calc(100% - 320px));
+  margin: 0;
+  translate: -50% 0;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--jargon-bg-overlay);
+  box-shadow: 0 0 0 1px var(--jargon-border);
+  padding: var(--jargon-space-1-5) var(--jargon-space-3);
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-md);
+  pointer-events: none;
+  text-align: center;
+}
+
+.diagram-board-status:empty {
+  display: none;
+}
+
+.diagram-board-status[data-tone="danger"] {
+  box-shadow: 0 0 0 1px var(--jargon-danger-border);
+  color: var(--jargon-danger-text);
+}
+
+/* Edges. The SVG has no size of its own: it draws outside its box, in canvas coordinates. */
+
+.diagram-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.diagram-edge path,
+.diagram-edge-draft {
+  fill: none;
+}
+
+.diagram-edge-hit {
+  stroke: transparent;
+  stroke-width: 16px;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.diagram-edge-line {
+  stroke: var(--jargon-border-strong);
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+
+.diagram-edge[data-state="delivered"] .diagram-edge-line {
+  stroke: var(--diagram-routine-color, var(--jargon-accent));
+}
+
+.diagram-edge[data-state="running"] .diagram-edge-line {
+  stroke: var(--diagram-routine-color, var(--jargon-accent));
+  stroke-dasharray: 6 6;
+  animation: diagram-edge-flow 0.6s linear infinite;
+}
+
+/* A connection that belongs to one routine wears its colour, so its path reads as that routine's. */
+.diagram-edge[data-routine-color][data-state="idle"] .diagram-edge-line {
+  stroke: var(--diagram-routine-color);
+  opacity: 0.6;
+}
+
+.diagram-edge:hover .diagram-edge-line,
+.diagram-edge[data-selected] .diagram-edge-line {
+  stroke: var(--jargon-text-primary);
+  stroke-width: 3px;
+}
+
+/* One arrow where a connection enters a card. Before a run it stays readable on the quiet line. */
+.diagram-edge .diagram-edge-arrow {
+  fill: var(--jargon-text-muted);
+}
+
+.diagram-edge:is([data-state="delivered"], [data-state="running"]) .diagram-edge-arrow {
+  fill: var(--diagram-routine-color, var(--jargon-accent));
+}
+
+.diagram-edge:hover .diagram-edge-arrow,
+.diagram-edge[data-selected] .diagram-edge-arrow {
+  fill: var(--jargon-text-primary);
+}
+
+.diagram-edge[data-state="dimmed"] .diagram-edge-arrow {
+  opacity: 0.3;
+}
+
+.diagram-edge[data-routine-color][data-state="idle"] .diagram-edge-arrow {
+  fill: var(--diagram-routine-color);
+  opacity: 0.6;
+}
+
+.diagram-edge-draft {
+  stroke: var(--jargon-accent);
+  stroke-width: 2px;
+  stroke-dasharray: 6 6;
+}
+
+.diagram-edge-draft[data-target="invalid"] {
+  stroke: var(--jargon-danger);
+}
+
+.diagram-edge-remove.ui-button {
+  position: absolute;
+  top: var(--diagram-edge-y);
+  left: var(--diagram-edge-x);
+  z-index: 1;
+  translate: -50% -50%;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--jargon-bg-surface-raised);
+  box-shadow: 0 0 0 1px var(--jargon-border-strong);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--jargon-duration-fast) var(--jargon-ease-out);
+}
+
+.diagram-edge-remove.ui-button:is([data-selected], :focus-visible) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes diagram-edge-flow {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+
+/* Cards */
+
+.diagram-node {
+  position: absolute;
+  top: var(--diagram-node-y);
+  left: var(--diagram-node-x);
+  display: flex;
+  width: var(--diagram-node-width);
+  flex-direction: column;
+  border-radius: var(--jargon-radius-card);
+  background: var(--jargon-bg-surface-raised);
+  box-shadow:
+    0 0 0 1px var(--jargon-border),
+    var(--jargon-shadow-raised);
+  cursor: grab;
+  transition:
+    box-shadow var(--jargon-duration-fast) var(--jargon-ease-out),
+    opacity var(--jargon-duration-normal) var(--jargon-ease-out);
+  user-select: none;
+}
+
+.diagram-node[data-status="running"] {
+  box-shadow:
+    0 0 0 1px var(--jargon-accent),
+    0 0 0 5px var(--jargon-accent-soft);
+}
+
+.diagram-node[data-status="failed"] {
+  box-shadow:
+    0 0 0 1px var(--jargon-danger-border),
+    var(--jargon-shadow-raised);
+}
+
+.diagram-node[data-unreachable] {
+  box-shadow: 0 0 0 1px var(--jargon-warning);
+}
+
+.diagram-node[data-selected] {
+  box-shadow:
+    0 0 0 2px var(--jargon-accent),
+    var(--jargon-shadow-raised);
+}
+
+.diagram-node-header {
+  display: flex;
+  height: 52px;
+  align-items: center;
+  gap: var(--jargon-space-1);
+  border-bottom: 1px solid var(--jargon-border);
+  padding: 0 var(--jargon-space-2) 0 var(--jargon-space-1);
+}
+
+.diagram-node-select.ui-button {
+  height: 44px;
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-start;
+  gap: var(--jargon-space-2);
+  padding: 0 var(--jargon-space-1-5);
+  background: transparent;
+  cursor: inherit;
+  text-align: left;
+}
+
+.diagram-node-avatar.agent-avatar {
+  width: 28px;
+  height: 28px;
+}
+
+.diagram-node-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-accent-soft);
+  color: var(--jargon-accent-text);
+}
+
+.diagram-node-icon svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+}
+
+.diagram-node-heading {
+  display: grid;
+  min-width: 0;
+}
+
+.diagram-node-kicker {
+  overflow: hidden;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  font-weight: var(--jargon-weight-regular);
+  line-height: var(--jargon-leading-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-node-name {
+  overflow: hidden;
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-md);
+  font-weight: var(--jargon-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-node-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-2) var(--jargon-space-3) var(--jargon-space-3);
+}
+
+.diagram-node-task,
+.diagram-node-schedule {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+}
+
+.diagram-node-schedule {
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-md);
+}
+
+/* The output of the last run, inside the card, the way a generation shows its result. */
+.diagram-node-preview {
+  display: flex;
+  min-height: 64px;
+  align-items: flex-start;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-control);
+  padding: var(--jargon-space-2);
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+}
+
+.diagram-node-preview[data-empty] {
+  align-items: center;
+  justify-content: center;
+}
+
+.diagram-node-preview p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  white-space: pre-line;
+}
+
+.diagram-node[data-status="failed"] .diagram-node-preview {
+  background: var(--jargon-danger-soft);
+  color: var(--jargon-danger-text);
+}
+
+.diagram-node-preview-empty {
+  color: var(--jargon-text-placeholder);
+}
+
+.diagram-node-footer {
+  display: flex;
+  min-height: 24px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jargon-space-2);
+}
+
+.diagram-node-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jargon-space-1);
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+}
+
+.diagram-node-status svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+}
+
+:is(.diagram-node-status, .diagram-inspector-step-status)[data-status="succeeded"] {
+  color: var(--jargon-success-text);
+}
+
+:is(.diagram-node-status, .diagram-inspector-step-status)[data-status="failed"] {
+  color: var(--jargon-danger-text);
+}
+
+:is(.diagram-node-status, .diagram-inspector-step-status)[data-status="running"] {
+  color: var(--jargon-accent-text);
+}
+
+.diagram-node-status[data-status="unreachable"] {
+  color: var(--jargon-warning-text);
+}
+
+.diagram-node-duration {
+  color: var(--jargon-text-muted);
+}
+
+.diagram-node-duration::before {
+  content: "·";
+  margin-right: var(--jargon-space-1);
+}
+
+.diagram-node-remove.ui-button,
+/* Stays at the right edge also when the routine has no runs to show. */
+.diagram-node-run.ui-button {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+.diagram-node-run.ui-button svg,
+.diagram-view-actions .ui-button-size-xs svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+}
+
+/* Ports sit on the card's edge, level with the header. */
+.diagram-port.ui-button {
+  position: absolute;
+  top: 19px;
+  z-index: 1;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  border: 2px solid var(--jargon-border-strong);
+  border-radius: var(--jargon-radius-pill);
+  background: var(--jargon-bg-surface-raised);
+  padding: 0;
+  cursor: crosshair;
+  transition:
+    scale var(--jargon-duration-fast) var(--jargon-ease-out),
+    border-color var(--jargon-duration-fast) var(--jargon-ease-out),
+    background-color var(--jargon-duration-fast) var(--jargon-ease-out);
+}
+
+/* A larger target than the dot it shows. */
+.diagram-port.ui-button::before {
+  position: absolute;
+  inset: -8px;
+  content: "";
+}
+
+.diagram-port-in.ui-button {
+  left: -7px;
+}
+
+.diagram-port-out.ui-button {
+  right: -7px;
+}
+
+.diagram-port.ui-button:hover,
+.diagram-port-out.ui-button[data-connecting],
+.diagram-port-in.ui-button[data-target="valid"] {
+  scale: 1.25;
+  border-color: var(--jargon-accent);
+  background: var(--jargon-accent-soft);
+}
+
+.diagram-port-out.ui-button[data-connecting] {
+  background: var(--jargon-accent);
+}
+
+.diagram-port-in.ui-button[data-target="invalid"] {
+  border-color: var(--jargon-danger);
+  opacity: 0.5;
+}
+
+.diagram-port.ui-button:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+/* Routine colours. A routine, the chips that name it on agent cards, and its path while it is in
+   focus share one colour, so a run can be followed across the canvas. */
+[data-routine-color="0"] {
+  --diagram-routine-color: var(--jargon-file-blue);
+  --diagram-routine-soft: var(--jargon-file-blue-soft);
+}
+
+[data-routine-color="1"] {
+  --diagram-routine-color: var(--jargon-file-green);
+  --diagram-routine-soft: var(--jargon-file-green-soft);
+}
+
+[data-routine-color="2"] {
+  --diagram-routine-color: var(--jargon-file-orange);
+  --diagram-routine-soft: var(--jargon-file-orange-soft);
+}
+
+[data-routine-color="3"] {
+  --diagram-routine-color: var(--jargon-file-pink);
+  --diagram-routine-soft: var(--jargon-file-pink-soft);
+}
+
+[data-routine-color="4"] {
+  --diagram-routine-color: var(--jargon-file-teal);
+  --diagram-routine-soft: var(--jargon-file-teal-soft);
+}
+
+[data-routine-color="5"] {
+  --diagram-routine-color: var(--jargon-file-yellow);
+  --diagram-routine-soft: var(--jargon-file-yellow-soft);
+}
+
+/* Outside the focused routine's path the canvas recedes, but stays readable and editable. */
+.diagram-node[data-dimmed] {
+  opacity: 0.4;
+}
+
+.diagram-node[data-dimmed]:is(:hover, :focus-within) {
+  opacity: 0.8;
+}
+
+.diagram-edge[data-state="dimmed"] .diagram-edge-line {
+  opacity: 0.3;
+}
+
+.diagram-node-routines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jargon-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagram-routine-chip.ui-button {
+  height: 22px;
+  gap: var(--jargon-space-1);
+  border-radius: var(--jargon-radius-pill);
+  background: var(--diagram-routine-soft);
+  padding: 0 var(--jargon-space-2);
+  color: var(--diagram-routine-color);
+  font-size: var(--jargon-text-sm);
+}
+
+.diagram-routine-chip.ui-button[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 1px var(--diagram-routine-color);
+}
+
+.diagram-routine-chip.ui-button svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+}
+
+.diagram-routine-chip-name {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The webhook of a routine in the details panel: the routine settings' card, and Save under it. */
+.diagram-routine-webhook {
+  display: grid;
+  gap: var(--jargon-space-2);
+}
+
+.diagram-routine-webhook-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* The routine picker, at the top centre of the canvas. */
+.diagram-view-lens-bar {
+  position: absolute;
+  top: var(--jargon-space-4);
+  left: 50%;
+  z-index: 2;
+  translate: -50% 0;
+}
+
+.diagram-view-lens-bar .ui-select-trigger {
+  background: var(--jargon-bg-overlay);
+  box-shadow: var(--jargon-shadow-raised);
+}
+
+.diagram-view-lens-trigger.ui-select-trigger {
+  min-width: 120px;
+  max-width: 280px;
+}
+
+.diagram-view-lens-option {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--jargon-space-2);
+}
+
+.diagram-view-lens-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-view-lens-option svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+  flex: none;
+}
+
+/* "All routines" has no colour of its own: its dot is an outline. */
+.diagram-view-lens-dot[data-all] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--jargon-text-muted);
+}
+
+.diagram-view-lens-dot,
+.diagram-inspector-routine-dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--diagram-routine-color);
+}
+
+.diagram-inspector-routine.ui-button[aria-pressed="true"] {
+  background: var(--diagram-routine-soft);
+}
+
+/* Routine: what it asks, when it fires, how it went */
+
+/* The routine glows while the run it started is in progress. */
+.diagram-node[data-kind="routine"][data-firing] {
+  box-shadow:
+    0 0 0 1px var(--diagram-routine-color),
+    0 0 0 5px var(--diagram-routine-soft);
+}
+
+.diagram-node[data-kind="routine"] .diagram-node-icon {
+  background: var(--diagram-routine-soft);
+  color: var(--diagram-routine-color);
+}
+
+.diagram-node[data-kind="routine"][data-firing] .diagram-node-icon {
+  animation: diagram-routine-fire 1.2s var(--jargon-ease-in-out) infinite;
+}
+
+.diagram-routine-instruction {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  border-left: 2px solid var(--diagram-routine-color, var(--jargon-accent));
+  padding-left: var(--jargon-space-2);
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+}
+
+.diagram-routine-week {
+  --diagram-week-height: 40px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--jargon-space-1);
+}
+
+.diagram-routine-week[data-size="panel"] {
+  --diagram-week-height: 72px;
+}
+
+.diagram-routine-day {
+  display: grid;
+  justify-items: center;
+  gap: var(--jargon-space-1);
+}
+
+/* One day, midnight at the top: a tick sits at the time the routine fires. */
+.diagram-routine-day-track {
+  position: relative;
+  width: 100%;
+  height: var(--diagram-week-height);
+  border-radius: var(--jargon-radius-sm);
+  background: var(--jargon-bg-control);
+}
+
+.diagram-routine-day[data-weekend] .diagram-routine-day-track {
+  background: var(--jargon-bg-control-hover);
+}
+
+.diagram-routine-day[data-today] .diagram-routine-day-track {
+  box-shadow: inset 0 0 0 1px var(--jargon-accent);
+}
+
+/* Noon, so a morning run reads as morning. */
+.diagram-routine-day-track::after {
+  position: absolute;
+  top: 50%;
+  right: 3px;
+  left: 3px;
+  height: 1px;
+  background: var(--jargon-border);
+  content: "";
+}
+
+.diagram-routine-tick {
+  position: absolute;
+  top: var(--diagram-tick-at);
+  right: 3px;
+  left: 3px;
+  z-index: 1;
+  height: 3px;
+  translate: 0 -50%;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--diagram-routine-color, var(--jargon-accent));
+}
+
+.diagram-routine-day-name {
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  line-height: 1;
+}
+
+.diagram-routine-day[data-today] .diagram-routine-day-name {
+  color: var(--jargon-accent-text);
+  font-weight: var(--jargon-weight-semibold);
+}
+
+.diagram-routine-dots {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagram-routine-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--jargon-border-strong);
+}
+
+.diagram-routine-dot[data-status="succeeded"] {
+  background: var(--jargon-success);
+}
+
+.diagram-routine-dot[data-status="failed"] {
+  background: var(--jargon-danger);
+}
+
+.diagram-routine-dot[data-status="running"] {
+  background: var(--jargon-accent);
+}
+
+@keyframes diagram-routine-fire {
+  50% {
+    scale: 1.15;
+  }
+}
+
+/* Run panel */
+
+.diagram-inspector {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  width: var(--diagram-inspector-width);
+  min-height: 0;
+  flex-direction: column;
+  border-left: 1px solid var(--jargon-border);
+  background: var(--jargon-bg-surface);
+}
+
+.diagram-inspector-header {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  border-bottom: 1px solid var(--jargon-border);
+  padding: var(--jargon-space-2) var(--jargon-space-3);
+}
+
+.diagram-inspector-title {
+  overflow: hidden;
+  margin: 0;
+  flex: 1;
+  font-size: var(--jargon-text-lg);
+  font-weight: var(--jargon-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-inspector-avatar.agent-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.diagram-inspector-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--jargon-space-4);
+  overflow-y: auto;
+  padding: var(--jargon-space-4);
+}
+
+.diagram-inspector-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--jargon-space-1-5) var(--jargon-space-2);
+  font-size: var(--jargon-text-md);
+}
+
+.diagram-inspector-muted,
+.diagram-inspector-empty {
+  margin: 0;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+}
+
+.diagram-inspector-section {
+  display: grid;
+  gap: var(--jargon-space-1-5);
+}
+
+.diagram-inspector-section p {
+  margin: 0;
+  font-size: var(--jargon-text-md);
+  line-height: var(--jargon-leading-md);
+}
+
+/* The task reads as text until the user points at it or types in it. */
+.diagram-inspector-task.ui-textarea {
+  min-height: 0;
+  margin: calc(-1 * var(--jargon-space-1-5));
+  border-color: transparent;
+  background: transparent;
+  padding: var(--jargon-space-1) var(--jargon-space-1-5);
+  font-size: var(--jargon-text-md);
+  line-height: var(--jargon-leading-md);
+  resize: none;
+  field-sizing: content;
+}
+
+.diagram-inspector-task.ui-textarea:is(:hover, :focus-visible, :focus) {
+  border-color: var(--jargon-border);
+  background: var(--jargon-bg-control);
+}
+
+.diagram-inspector-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.diagram-inspector-section-title {
+  margin: 0;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  font-weight: var(--jargon-weight-semibold);
+  letter-spacing: var(--jargon-tracking-wide);
+}
+
+.diagram-inspector-text {
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-control);
+  padding: var(--jargon-space-2) var(--jargon-space-3);
+  color: var(--jargon-text-primary);
+  font-family: var(--jargon-font-sans);
+  font-size: var(--jargon-text-md);
+  line-height: var(--jargon-leading-md);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.diagram-inspector-text[data-tone="danger"] {
+  background: var(--jargon-danger-soft);
+  color: var(--jargon-danger-text);
+}
+
+.diagram-inspector-steps {
+  display: grid;
+  gap: var(--jargon-space-0-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.diagram-inspector-step.ui-button {
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-2);
+  text-align: left;
+}
+
+.diagram-inspector-step-number {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  place-items: center;
+  border-radius: var(--jargon-radius-pill);
+  background: var(--jargon-bg-control);
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--jargon-weight-semibold);
+}
+
+.diagram-inspector-step-name {
+  overflow: hidden;
+  flex: 1;
+  font-size: var(--jargon-text-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-inspector-step-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--jargon-space-1);
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.diagram-inspector-times,
+.diagram-inspector-history {
+  display: grid;
+  gap: var(--jargon-space-1);
+  margin: 0;
+  padding: 0;
+  font-size: var(--jargon-text-md);
+  list-style: none;
+}
+
+.diagram-inspector-times li {
+  color: var(--jargon-text-secondary);
+}
+
+.diagram-inspector-history li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--jargon-space-2);
+}
+
+.diagram-inspector-history-time {
+  overflow: hidden;
+  color: var(--jargon-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-inspector-history-kind {
+  color: var(--jargon-text-muted);
+}
+
+.diagram-inspector-history-kind::before {
+  content: " · ";
+}
+
+.diagram-inspector-step-status svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+}
+
+/* Assistant */
+
+.diagram-chat,
+.diagram-chat-launcher.ui-button {
+  background: var(--jargon-bg-glass);
+  box-shadow:
+    0 0 0 1px var(--jargon-glass-border),
+    var(--jargon-shadow-overlay);
+  backdrop-filter: blur(16px);
+}
+
+/* The launcher and the panel share one grid cell. Opening grows the panel out of the launcher's pill
+   with a clip that relaxes into the panel's own corners, with a little overshoot; closing folds it
+   back faster and without one. The panel's shadow sits outside its box, so the open clip leaves room. */
+.diagram-chat-morph {
+  --diagram-chat-open-duration: var(--jargon-duration-island-content);
+  --diagram-chat-close-duration: var(--jargon-duration-island-content-exit);
+  --diagram-chat-open-ease: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --diagram-chat-launcher-height: 36px;
+  --diagram-chat-blur: 2px;
+  display: grid;
+  align-items: end;
+}
+
+.diagram-chat-morph > * {
+  grid-area: 1 / 1;
+}
+
+.diagram-chat-launcher.ui-button {
+  height: var(--diagram-chat-launcher-height);
+  touch-action: none;
+  justify-self: start;
+  gap: var(--jargon-space-2);
+  border-radius: var(--jargon-radius-pill);
+  padding-left: var(--jargon-space-1-5);
+  pointer-events: auto;
+  transition:
+    opacity var(--diagram-chat-open-duration) var(--jargon-ease-out),
+    filter var(--diagram-chat-open-duration) var(--jargon-ease-out),
+    scale var(--diagram-chat-open-duration) var(--jargon-ease-out);
+}
+
+.diagram-chat-morph[data-open="true"] .diagram-chat-launcher.ui-button {
+  scale: 0.97;
+  filter: blur(var(--diagram-chat-blur));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--jargon-duration-fast) var(--jargon-ease-out),
+    filter var(--jargon-duration-fast) var(--jargon-ease-out),
+    scale var(--jargon-duration-fast) var(--jargon-ease-out);
+}
+
+.diagram-chat {
+  display: flex;
+  max-height: 340px;
+  flex-direction: column;
+  border-radius: var(--jargon-radius-xl);
+  overflow: hidden;
+  clip-path: inset(calc(100% - var(--diagram-chat-launcher-height)) 24% 0 0 round var(--jargon-radius-pill));
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    clip-path var(--diagram-chat-close-duration) var(--jargon-ease-out),
+    opacity var(--diagram-chat-close-duration) var(--jargon-ease-out);
+}
+
+.diagram-chat-morph[data-open="true"] .diagram-chat {
+  clip-path: inset(-32px round 0);
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    clip-path var(--diagram-chat-open-duration) var(--diagram-chat-open-ease),
+    opacity var(--jargon-duration-fast) var(--jargon-ease-out);
+}
+
+/* The content settles a beat after the shape, so the panel reads as opening, not appearing. */
+.diagram-chat > * {
+  filter: blur(var(--diagram-chat-blur));
+  opacity: 0;
+  translate: 0 var(--jargon-space-2);
+  transition:
+    opacity var(--jargon-duration-fast) var(--jargon-ease-out),
+    filter var(--jargon-duration-fast) var(--jargon-ease-out),
+    translate var(--jargon-duration-fast) var(--jargon-ease-out);
+}
+
+.diagram-chat-morph[data-open="true"] .diagram-chat > * {
+  filter: blur(0);
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity var(--diagram-chat-open-duration) var(--jargon-ease-out) var(--jargon-duration-fast),
+    filter var(--diagram-chat-open-duration) var(--jargon-ease-out) var(--jargon-duration-fast),
+    translate var(--diagram-chat-open-duration) var(--jargon-ease-out) var(--jargon-duration-fast);
+}
+
+.diagram-chat-avatar.agent-avatar {
+  width: 24px;
+  height: 24px;
+}
+
+.diagram-chat-header {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  cursor: grab;
+  touch-action: none;
+  border-bottom: 1px solid var(--jargon-border);
+  padding: var(--jargon-space-2) var(--jargon-space-2) var(--jargon-space-2) var(--jargon-space-3);
+}
+
+.diagram-chat-title {
+  overflow: hidden;
+  margin: 0;
+  flex: 1;
+  font-size: var(--jargon-text-md);
+  font-weight: var(--jargon-weight-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.diagram-chat-messages {
+  display: flex;
+  min-height: 96px;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--jargon-space-2);
+  overflow-y: auto;
+  padding: var(--jargon-space-3);
+}
+
+.diagram-chat-empty {
+  margin: auto 0;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+  text-align: center;
+}
+
+.diagram-chat-bubble {
+  max-width: 88%;
+  font-size: var(--jargon-text-md);
+}
+
+.diagram-chat-text {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* The chat's Markdown, a size down to fit the panel. */
+.diagram-chat-markdown {
+  min-width: 0;
+  font-size: var(--jargon-text-md);
+}
+
+.diagram-chat-changes {
+  display: grid;
+  gap: var(--jargon-space-1);
+  margin: var(--jargon-space-2) 0 0;
+  padding: 0;
+  font-size: var(--jargon-text-sm);
+  list-style: none;
+}
+
+.diagram-chat-changes li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--jargon-space-1-5);
+}
+
+.diagram-chat-changes svg {
+  width: var(--jargon-icon-xs);
+  height: var(--jargon-icon-xs);
+  flex: none;
+  margin-top: 2px;
+  color: var(--jargon-success-text);
+}
+
+.diagram-chat-working {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  margin: 0;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+}
+
+/* The chat composer's compact row, without its attach button: the editor and the send button. */
+.diagram-chat-composer.composer[data-compact] {
+  grid-template-columns: minmax(0, 1fr) auto;
+  margin: var(--jargon-space-2);
+}
+
+.diagram-chat-composer.composer[data-compact] > .composer-input-label {
+  grid-column: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diagram-edge[data-state="running"] .diagram-edge-line {
+    animation: none;
+  }
+
+  .diagram-node[data-kind="routine"][data-firing] .diagram-node-icon {
+    animation: none;
+  }
+
+  .diagram-chat-launcher.ui-button,
+  .diagram-chat,
+  .diagram-chat > *,
+  .diagram-board-world[data-settling],
+  .diagram-node,
+  .diagram-port.ui-button,
+  .diagram-edge-remove.ui-button {
+    transition: none;
+  }
+}

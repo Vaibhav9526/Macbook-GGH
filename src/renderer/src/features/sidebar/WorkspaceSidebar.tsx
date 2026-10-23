@@ -1,0 +1,257 @@
+import { AGENT_HIDDEN_CAPABILITY } from "@jargon/contracts/team-protocol/current";
+import { computeAgentAvatarMoods } from "@jargon/ui/features/agents/agent-avatar-mood";
+import { Sidebar } from "@jargon/ui/features/sidebar/Sidebar";
+import { computeSidebarAgentStates } from "@jargon/ui/features/sidebar/sidebar-agent-states";
+import { useText } from "@jargon/ui/text";
+import { createEffect, createMemo } from "solid-js";
+import { useLayout } from "../../layout";
+import { DirectConversation } from "../../lazy-views";
+import { useNavigation } from "../../navigation";
+import { usePlatform } from "../../platform";
+import { useTurns } from "../../turns";
+import { useAgentActions } from "../agents/agent-actions";
+import { useAgents } from "../agents/agents-context";
+import { useChannels } from "../channels/channels-context";
+import { useConversation } from "../conversation/conversation-context";
+import { useDirectMessages } from "../conversation/direct-messages-context";
+import { SchoolLibraryStrip } from "../school/SchoolLibraryStrip";
+import { schoolActive, setWorkspace } from "../school/school-workspace";
+import { useServerActions } from "../servers/server-actions";
+import { serverRoleCanAdminister } from "../servers/server-capabilities";
+import { useServerSettings } from "../servers/server-settings";
+import { serverUpdateBadge, showServerUpdate } from "../servers/server-update-flow";
+import { useServers } from "../servers/servers-context";
+import { useSettings } from "../settings/settings-context";
+import { usePresence } from "../team/team-context";
+import { SidebarUpdateIsland } from "../updates/SidebarUpdateIsland";
+import { useWindowPage } from "../window/window-page-context";
+import { useSidebar } from "./sidebar-context";
+
+/** Dismissing the mobile app card is a choice of this computer, like the sidebar width. The key is
+ * new with the Android release, so a computer that dismissed the iPhone-only card sees it once more. */
+
+/**
+ * The list of Agents and people. It reads the most domains of any pane, and every
+ * one of them for the same reason: a sidebar row shows who exists, who is
+ * working, who has replied and who is pinned, which is four domains before any
+ * of the actions on the row context menu.
+ *
+ * `peopleEnabled` arrives as a prop because the shell already computes it to
+ * decide which pane renders. Deriving it a second time here would let the two
+ * answers disagree for a frame.
+ */
+export function WorkspaceSidebar(props: { peopleEnabled: boolean }) {
+  const { t } = useText();
+  const layout = useLayout();
+  const windowPage = useWindowPage();
+  /** The Tasks page shows beside the list. No row is open, so a click on a row opens its chat. */
+  const tasksOpen = () => windowPage.page() === "tasks";
+  const platform = usePlatform();
+  const channels = useChannels();
+  const { activeServer, activeServerSupportsCapability } = useServers();
+  const { openServerSettings } = useServerSettings();
+  const serverActions = useServerActions();
+  const { setSkillsMarketplaceOpen } = useSettings();
+  const {
+    agentList,
+    agentListConnecting,
+    agentListSettled,
+    activeAgent,
+    agentSetupDraft,
+    duplicatingAgentIds,
+    openAgentSetup,
+    userHiddenAgents,
+    userHiddenAgentIds,
+  } = useAgents();
+  const { editAgent, duplicateAgent, deleteAgent, setAgentHiddenByUser } = useAgentActions();
+  // The host refuses a member: a hidden agent stops for every member, as a deleted one does.
+  const hideAllowed = () =>
+    activeServerSupportsCapability(AGENT_HIDDEN_CAPABILITY) && serverRoleCanAdminister(activeServer());
+  const { activeTurns, queues, failedTurns, usageLimits, pendingPrompts, pendingApprovals, approvals } = useTurns();
+  const { unreadReplies, recentReplies, markAllAgentMessagesRead } = useConversation();
+  const { directPeople } = usePresence();
+  const { activeDirectMember, activeDirectMemberId, directThreads } = useDirectMessages();
+  const { selectAgent, selectDirectMember, setGlobalSearchVisibility } = useNavigation();
+  const {
+    sidebarLayout,
+    collapsedSidebarSectionIds,
+    mutateSidebarLayout,
+    toggleSidebarSection,
+    pinnedSidebarItems,
+    sidebarPeopleOrder,
+    pinSidebarItem,
+    unpinSidebarItem,
+    reorderPinnedSidebarItems,
+    reorderSidebarPeople,
+  } = useSidebar();
+
+  /* Channels reach the sidebar as data, not as a list of their own: they sit in the layout's
+   * sections beside the agents, so the sidebar has to be able to order and group them. The Routines
+   * view lists only agents: a channel has no routine canvas. */
+  const channelsListed = () => channels.supported() && layout.sidebarView() !== "routines";
+  const visibleChannels = createMemo(() =>
+    channelsListed() ? channels.state.channels.filter((channel) => !channel.archived) : [],
+  );
+  /* A channel can open while the Routines view is on: from search, a notification, or a selection
+   * restored at start. Its row must be in the list, so the list goes back to the agents view. */
+  createEffect(
+    () => layout.sidebarView() === "routines" && channels.state.selectedId !== null,
+    (channelOpenInRoutines) => {
+      if (channelOpenInRoutines) layout.setSidebarView("agents");
+    },
+  );
+
+  /* The agent conversation shows only the waits of the agent's own thread. A wait in a channel
+   * thread stays out of "Needs you", because selecting the row cannot answer it. */
+  const sidebarAgentStates = createMemo(() => {
+    const agentThreads = new Map(agentList().map((agent) => [agent.id, agent.threadId]));
+    const inAgentThread = (agentId: string, threadId: string | undefined) =>
+      threadId !== undefined && agentThreads.get(agentId) === threadId;
+    return computeSidebarAgentStates({
+      agentIds: agentList().map((agent) => agent.id),
+      activeTurns: activeTurns(),
+      queues: queues(),
+      unreadReplies: unreadReplies(),
+      recentReplies: recentReplies(),
+      pendingPrompts: Object.fromEntries(
+        Object.entries(pendingPrompts()).filter(([agentId, event]) =>
+          inAgentThread(agentId, event?.type === "prompt" ? event.threadId : event?.request.threadId),
+        ),
+      ),
+      pendingApprovals: Object.fromEntries(
+        approvals()
+          .filter((approval) => inAgentThread(approval.agentId, approval.threadId))
+          .map((approval) => [approval.agentId, approval]),
+      ),
+      failedTurns: failedTurns(),
+      usageLimits: usageLimits(),
+    });
+  });
+
+  /* The badge says what an agent is doing; the face says how it is going. `isAgentWorking` is
+   * shared, and a routine mark only replaces the badge for that same agent. */
+  const agentMoods = createMemo(() =>
+    computeAgentAvatarMoods({
+      agentIds: agentList().map((agent) => agent.id),
+      activeTurns: activeTurns(),
+      queues: queues(),
+      failedTurns: failedTurns(),
+      pendingPrompts: pendingPrompts(),
+      pendingApprovals: pendingApprovals(),
+      recentReplies: recentReplies(),
+    }),
+  );
+
+  return (
+    <Sidebar
+      channels={visibleChannels()}
+      deletedChannels={channelsListed() ? channels.state.channels.filter((channel) => channel.archived) : []}
+      activeChannelId={tasksOpen() ? null : channels.state.selectedId}
+      onSelectChannel={(id) => void channels.open(id)}
+      onEditChannel={(id) => void channels.editChannel(id)}
+      onDeleteChannel={channels.deletionSupported() ? channels.remove : undefined}
+      onRestoreChannel={channels.deletionSupported() ? channels.restore : undefined}
+      showingArchivedChannels={channelsListed() && channels.state.archived}
+      onToggleArchivedChannels={channelsListed() ? channels.toggleArchived : undefined}
+      onCreateChannel={channelsListed() ? channels.create : undefined}
+      onMarkAllRead={() => {
+        void markAllAgentMessagesRead();
+        void channels.markAllRead();
+      }}
+      hasUnread={
+        agentList().some((agent) => !userHiddenAgentIds().has(agent.id) && (unreadReplies()[agent.id] ?? 0) > 0) ||
+        channels.hasUnread()
+      }
+      view={layout.sidebarView()}
+      serverName={
+        schoolActive() ? t("app.school.workspace.name") : (activeServer()?.name ?? t("sidebar.topbar.localServer"))
+      }
+      onOpenServerSettings={(trigger) => {
+        const server = activeServer();
+        if (server) openServerSettings(server.id, trigger);
+      }}
+      serverUpdate={(() => {
+        const server = activeServer();
+        const badge = server ? serverUpdateBadge(server.id) : null;
+        return server && badge ? { ...badge, onOpen: () => void showServerUpdate(server.id) } : undefined;
+      })()}
+      serverMenu={
+        platform.appInfo()
+          ? {
+              servers: serverActions.orderedServers(),
+              view: layout.serverView(),
+              onViewChange: layout.setServerView,
+              onSelect: serverActions.select,
+              workspace: {
+                school: schoolActive(),
+                onSelectSchool: () => setWorkspace("school"),
+                onSelectLocal: () => setWorkspace("local"),
+              },
+              onAdd: serverActions.add,
+              addCreatesServer: serverActions.addCreatesServer(),
+              ...serverActions.callbacks,
+            }
+          : undefined
+      }
+      agents={agentList()}
+      activeAgentId={tasksOpen() || activeDirectMember() || channels.state.selectedId ? "" : (activeAgent()?.id ?? "")}
+      showPeople={props.peopleEnabled}
+      people={directPeople()}
+      directThreads={directThreads()}
+      activeDirectMemberId={tasksOpen() ? null : activeDirectMemberId()}
+      agentStates={sidebarAgentStates()}
+      agentMoods={agentMoods()}
+      layout={sidebarLayout()}
+      layoutMutable={activeServerSupportsCapability("sidebar-layout")}
+      collapsedSectionIds={collapsedSidebarSectionIds()}
+      onMutateLayout={mutateSidebarLayout}
+      onToggleSection={toggleSidebarSection}
+      pinnedItems={pinnedSidebarItems()}
+      peopleOrder={sidebarPeopleOrder()}
+      onPin={pinSidebarItem}
+      onUnpin={unpinSidebarItem}
+      onReorderPinned={reorderPinnedSidebarItems}
+      onReorderPeople={reorderSidebarPeople}
+      onSelectAgent={selectAgent}
+      onSelectPerson={(memberId) => void selectDirectMember(memberId)}
+      onPreloadDirectConversation={props.peopleEnabled ? () => void DirectConversation.preload() : undefined}
+      onCreateAgent={() => {
+        channels.close();
+        openAgentSetup();
+      }}
+      onEditAgent={editAgent}
+      duplicateSupported={activeServerSupportsCapability("agent-duplication")}
+      duplicatingAgentIds={duplicatingAgentIds()}
+      onDuplicateAgent={duplicateAgent}
+      onDeleteAgent={deleteAgent}
+      userHiddenAgents={userHiddenAgents()}
+      onHideAgent={hideAllowed() ? (agentId) => void setAgentHiddenByUser(agentId, true) : undefined}
+      onRestoreAgent={hideAllowed() ? (agentId) => void setAgentHiddenByUser(agentId, false) : undefined}
+      compact={layout.leftPanelCompact()}
+      onExpand={layout.expandSidebar}
+      onOpenSearch={() => setGlobalSearchVisibility(true)}
+      footer={
+        <>
+          <SchoolLibraryStrip />
+          <SidebarUpdateIsland />
+        </>
+      }
+      onOpenMarketplace={() => setSkillsMarketplaceOpen(true)}
+      onOpenSuperJargon={() => void window.jargon.openSuperJargon()}
+      agentsConnecting={agentListConnecting()}
+      emptyAction={
+        agentList().length === 0 && agentListSettled()
+          ? {
+              label: t("sidebar.empty.firstAgent"),
+              avatarSeed: agentSetupDraft().avatarSeed,
+              avatarHue: agentSetupDraft().avatarHue,
+              onSelect: () => {
+                channels.close();
+                openAgentSetup();
+              },
+            }
+          : undefined
+      }
+    />
+  );
+}

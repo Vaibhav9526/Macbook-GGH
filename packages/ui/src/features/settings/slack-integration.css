@@ -1,0 +1,156 @@
+/* Server settings > Connectors > Slack. */
+
+.slack-integration {
+  display: grid;
+  gap: var(--jargon-space-6);
+}
+
+.slack-integration-note {
+  margin-top: var(--jargon-space-2);
+}
+
+.slack-integration-stack {
+  display: grid;
+  gap: var(--jargon-space-0-5);
+  justify-items: start;
+}
+
+/* ------------------------------------------------ remove dialog */
+
+.slack-effects {
+  display: grid;
+  margin: 0;
+  padding: var(--jargon-space-1);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+  list-style: none;
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+}
+
+.slack-effects li {
+  display: flex;
+  gap: var(--jargon-space-3);
+  align-items: center;
+  padding: var(--jargon-space-2);
+}
+
+.slack-effects li + li {
+  border-top: 1px solid var(--jargon-border);
+}
+
+.slack-effect-icon {
+  display: inline-grid;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-surface-raised);
+  color: var(--jargon-text-muted);
+}
+
+.slack-effect-icon > svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+}
+
+.slack-effects li[data-tone="danger"] .slack-effect-icon {
+  background: var(--jargon-danger-soft);
+  color: var(--jargon-danger-text);
+}
+
+.slack-effects li[data-tone="success"] .slack-effect-icon {
+  background: var(--jargon-success-soft);
+  color: var(--jargon-success);
+}
+
+/* ------------------------------------------------ connect dialog */
+
+.slack-checklist {
+  display: grid;
+  gap: var(--jargon-space-2);
+  margin: 0;
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+  list-style: none;
+  font-size: var(--jargon-text-sm);
+}
+
+.slack-checklist li {
+  display: flex;
+  gap: var(--jargon-space-2);
+  align-items: center;
+}
+
+.slack-checklist li[data-state="done"] {
+  color: var(--jargon-text-secondary);
+}
+
+.slack-checklist li[data-state="done"] svg {
+  color: var(--jargon-success);
+}
+
+.slack-checklist-dot {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--jargon-border-strong);
+  border-radius: var(--jargon-radius-pill);
+}
+
+.slack-waiting {
+  display: flex;
+  gap: var(--jargon-space-2);
+  align-items: center;
+  justify-content: center;
+}
+
+.slack-orchestrator-card {
+  display: flex;
+  gap: var(--jargon-space-3);
+  align-items: center;
+  padding: var(--jargon-space-3);
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+}
+
+.slack-orchestrator-model {
+  display: grid;
+  gap: var(--jargon-space-1);
+}
+
+/* ------------------------------------------------ Discord roles dialog */
+
+.slack-roles {
+  display: grid;
+  max-height: 40vh;
+  margin: 0;
+  padding: var(--jargon-space-1);
+  overflow-y: auto;
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+  list-style: none;
+}
+
+.slack-role-row {
+  display: flex;
+  gap: var(--jargon-space-2);
+  align-items: center;
+  padding: var(--jargon-space-1) var(--jargon-space-2);
+  border-radius: var(--jargon-radius-sm);
+  cursor: pointer;
+}
+
+.slack-role-row:hover {
+  background: var(--jargon-bg-control-hover);
+}
+
+.slack-role-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

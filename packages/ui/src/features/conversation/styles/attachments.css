@@ -1,0 +1,247 @@
+.message-attachments {
+  display: grid;
+  width: min(100%, 256px);
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.message-attachment {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px 40px;
+  min-width: 0;
+  min-height: 56px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface-raised);
+  padding: 7px;
+  transition:
+    background-color var(--jargon-duration-hover) ease,
+    border-color var(--jargon-duration-hover) ease;
+}
+
+[data-slot="bubble"]:not([data-variant="ghost"]) > [data-slot="bubble-content"] > .message-attachments:last-child {
+  margin-bottom: var(--jargon-space-1);
+}
+
+[data-slot="bubble"]:not([data-variant="ghost"])
+  > [data-slot="bubble-content"]
+  > .message-attachments-group:last-child {
+  margin-bottom: var(--jargon-space-1);
+}
+
+[data-slot="bubble"]:not([data-variant="ghost"])
+  > [data-slot="bubble-content"]
+  > .message-attachments:last-child
+  .message-attachment {
+  border-radius: var(--jargon-radius-bubble-inset);
+}
+
+.message-attachments-group {
+  display: grid;
+  width: min(100%, 256px);
+  margin-top: var(--jargon-space-2);
+  gap: var(--jargon-space-1-5);
+}
+
+.message-attachments-group .message-attachments {
+  width: 100%;
+  margin-top: 0;
+}
+
+.ui-button.attachment-preview-button {
+  width: 100%;
+  height: 40px;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+}
+
+.attachment-preview-button:disabled {
+  cursor: default;
+}
+
+.attachment-file-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.attachment-file-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.message-attachment strong {
+  overflow: hidden;
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-md);
+  font-weight: 560;
+  line-height: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-attachment small {
+  color: var(--jargon-text-readable);
+  font-size: var(--jargon-text-sm);
+  line-height: 15px;
+}
+
+.attachment-open-button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 0;
+  border-radius: var(--jargon-radius-md);
+  background: transparent;
+  padding: 0;
+  color: var(--jargon-text-muted);
+  transition:
+    background-color var(--jargon-duration-hover) ease,
+    color var(--jargon-duration-hover) ease,
+    transform var(--jargon-duration-normal) cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.attachment-open-button svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: var(--jargon-icon-stroke);
+}
+
+.attachment-open-button:focus-visible,
+.attachment-preview-button:focus-visible {
+  outline: 2px solid var(--jargon-border-focus);
+  outline-offset: 2px;
+}
+
+.attachment-open-button:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .message-attachment:hover {
+    border-color: var(--jargon-border-strong);
+    background: var(--jargon-bg-control-hover);
+  }
+
+  .attachment-open-button:hover {
+    background: var(--jargon-bg-control-active);
+    color: var(--jargon-text-primary);
+  }
+}
+
+.agent-queue-panel {
+  --queue-row-height: 29px;
+  --queue-composer-overlap: 14px;
+  /* The leading glyph fills its column, so this inset is the gap the eye sees on the left. */
+  --queue-row-inset-start: 13px;
+  /* The trailing buttons are 26px boxes around 16px glyphs, so 5px of the gap is already in them. */
+  --queue-row-inset-end: 8px;
+  /* What stays between the panel edge and a row's hover fill, the same on all four sides. */
+  --queue-row-gutter: 5px;
+
+  position: relative;
+  z-index: 10;
+  overflow: visible;
+  margin: 0 12px calc(-1 * var(--queue-composer-overlap));
+  border: 1px solid var(--jargon-queue-border);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-queue-surface);
+  padding-bottom: var(--queue-composer-overlap);
+  box-shadow: none;
+  animation: queue-panel-in var(--jargon-duration-normal) cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.agent-queue-slot {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows var(--jargon-duration-overlay) var(--jargon-ease-out);
+}
+
+.agent-queue-slot[data-open="false"] {
+  grid-template-rows: 0fr;
+}
+
+.agent-queue-slot-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.agent-queue-panel-resize {
+  min-height: 0;
+}
+
+/*
+ * Why the queue waits, above the rows that wait. Sits inside the panel's own
+ * padding because the list below owns the row insets, not the panel.
+ */
+.agent-queue-hold {
+  margin: 0;
+  padding: var(--queue-row-gutter) var(--queue-row-inset-end) 0 var(--queue-row-inset-start);
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-attachments-group:has(.attachment-media-player),
+.message-attachments:has(.attachment-media-player) {
+  width: min(100%, 360px);
+}
+
+.attachment-media-player {
+  grid-column: 1 / -1;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--jargon-radius-md);
+}
+
+.message-attachment[data-media] {
+  grid-template-columns: minmax(0, 1fr) var(--jargon-control-sm) var(--jargon-control-sm);
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-3);
+}
+
+.message-attachment[data-media] .attachment-file-visual {
+  width: var(--jargon-control-md);
+  height: var(--jargon-control-md);
+  background: var(--jargon-bg-control);
+  color: var(--jargon-text-muted);
+}
+
+.message-attachment[data-media] .attachment-file-visual svg {
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+}
+
+.message-attachment[data-media] .attachment-open-button {
+  width: var(--jargon-control-sm);
+  height: var(--jargon-control-sm);
+}
+
+.message-attachment[data-media] .attachment-open-button svg {
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+}
+
+.message-attachment[data-media="audio"] .attachment-media-player {
+  height: var(--jargon-control-xl);
+}

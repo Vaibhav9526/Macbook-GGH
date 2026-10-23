@@ -1,0 +1,203 @@
+.billing-lifecycle-panel {
+  container-type: inline-size;
+}
+
+.billing-lifecycle-card {
+  overflow: hidden;
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+  box-shadow: 0 0 0 1px var(--jargon-border);
+}
+
+.billing-lifecycle-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-4);
+}
+
+.billing-lifecycle-server-icon,
+.billing-lifecycle-dialog-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: var(--jargon-control-xl);
+  height: var(--jargon-control-xl);
+  border-radius: var(--jargon-radius-md);
+  color: var(--jargon-text-secondary);
+  background: var(--jargon-bg-control-hover);
+}
+
+.billing-lifecycle-server-icon svg,
+.billing-lifecycle-dialog-icon svg {
+  width: var(--jargon-icon-lg);
+  height: var(--jargon-icon-lg);
+}
+
+.billing-lifecycle-server-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: var(--jargon-space-1);
+}
+
+.billing-lifecycle-billing {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-4);
+  border-top: 1px solid var(--jargon-border);
+}
+
+.billing-lifecycle-billing[data-scheduled] {
+  background: color-mix(in srgb, var(--jargon-warning-soft) 35%, transparent);
+}
+
+.billing-lifecycle-billing-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: var(--jargon-space-1);
+}
+
+.billing-lifecycle-calendar {
+  flex-shrink: 0;
+  width: var(--jargon-icon-lg);
+  height: var(--jargon-icon-lg);
+  color: var(--jargon-warning-text);
+}
+
+.billing-lifecycle-receipt {
+  display: grid;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-4);
+  margin-bottom: var(--jargon-space-4);
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-surface);
+}
+
+.billing-lifecycle-receipt > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--jargon-space-4);
+}
+
+.billing-lifecycle-receipt > div > :last-child {
+  text-align: right;
+  text-wrap: pretty;
+}
+
+.billing-lifecycle-receipt > div > :first-child {
+  flex-shrink: 0;
+}
+
+@container (max-width: 450px) {
+  .billing-lifecycle-identity {
+    flex-wrap: wrap;
+    gap: var(--jargon-space-2);
+  }
+
+  .billing-lifecycle-server-icon {
+    display: none;
+  }
+
+  .billing-lifecycle-server-copy {
+    flex-basis: 60%;
+  }
+
+  .billing-lifecycle-billing {
+    flex-wrap: wrap;
+  }
+
+  .billing-lifecycle-billing-copy {
+    flex-basis: 70%;
+  }
+}
+
+@media (max-width: 700px) {
+  .billing-lifecycle-receipt > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--jargon-space-1);
+  }
+
+  .billing-lifecycle-receipt > div > :last-child {
+    text-align: left;
+  }
+}
+
+.billing-lifecycle-menu.ui-action-menu {
+  z-index: var(--jargon-layer-dialog-host);
+}
+
+.billing-lifecycle-list {
+  display: grid;
+  gap: var(--jargon-space-3);
+}
+
+.billing-lifecycle-price {
+  display: grid;
+  justify-items: end;
+  gap: var(--jargon-space-1);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.billing-lifecycle-timing {
+  display: grid;
+  gap: var(--jargon-space-2);
+  margin-bottom: var(--jargon-space-4);
+  font-size: var(--jargon-text-sm);
+}
+
+.billing-lifecycle-timing-option {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-3);
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-md);
+}
+
+.billing-lifecycle-timing-option[data-checked] {
+  border-color: var(--jargon-accent);
+  background: var(--jargon-bg-surface);
+}
+
+.billing-lifecycle-timing-option[data-focus-visible] {
+  outline: 1px solid var(--jargon-accent);
+}
+
+.billing-lifecycle-timing-option label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.billing-lifecycle-radio {
+  flex-shrink: 0;
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+  border: 1px solid var(--jargon-border-strong);
+  border-radius: var(--jargon-radius-pill);
+}
+
+.billing-lifecycle-radio[data-checked] {
+  border-color: var(--jargon-accent);
+  background: var(--jargon-accent);
+  box-shadow: inset 0 0 0 var(--jargon-space-1) var(--jargon-bg-canvas);
+}
+
+@container (max-width: 450px) {
+  .billing-lifecycle-price {
+    order: 2;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    justify-items: start;
+  }
+
+  .billing-lifecycle-price > :last-child {
+    justify-self: end;
+  }
+}

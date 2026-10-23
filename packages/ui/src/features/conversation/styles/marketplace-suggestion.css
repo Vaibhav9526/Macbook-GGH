@@ -1,0 +1,130 @@
+/* Marketplace suggestion: an app or skill an agent suggests in the chat, with its connect action. */
+
+.marketplace-suggestion.conversation-interaction-card {
+  display: grid;
+  container-type: inline-size;
+  width: 100%;
+  max-width: 520px;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-3);
+}
+
+.marketplace-suggestion-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--jargon-space-3);
+}
+
+/* The listing icon keeps its tile border here, as on a dark chat its own fill meets the card. */
+.marketplace-suggestion .marketplace-suggestion-icon {
+  width: var(--jargon-control-lg);
+  height: var(--jargon-control-lg);
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-surface-raised);
+  color: var(--jargon-text-primary);
+}
+
+.marketplace-suggestion .marketplace-suggestion-icon img {
+  border-radius: inherit;
+}
+
+.marketplace-suggestion-heading {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+}
+
+/* In a narrow chat the action takes its own row, so the name keeps the width. */
+@container (max-width: 360px) {
+  .marketplace-suggestion-header {
+    flex-wrap: wrap;
+  }
+
+  .marketplace-suggestion-heading {
+    flex-basis: calc(100% - var(--jargon-control-lg) - var(--jargon-control-md) - 2 * var(--jargon-space-3));
+  }
+
+  .marketplace-suggestion-action {
+    order: 1;
+    width: 100%;
+  }
+
+  .marketplace-suggestion-action > .ui-button {
+    width: 100%;
+  }
+}
+
+.marketplace-suggestion-title {
+  overflow: hidden;
+  margin: 0;
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-md);
+  font-weight: var(--jargon-weight-medium);
+  line-height: var(--jargon-leading-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplace-suggestion .marketplace-suggestion-name {
+  height: auto;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+}
+
+.marketplace-suggestion-description {
+  overflow: hidden;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketplace-suggestion-action {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.marketplace-suggestion-done[data-slot="badge"] {
+  gap: var(--jargon-space-1-5);
+  border-radius: var(--jargon-radius-pill);
+  font-size: var(--jargon-text-sm);
+  font-weight: var(--jargon-weight-medium);
+}
+
+.marketplace-suggestion-done svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+}
+
+.marketplace-suggestion-unavailable {
+  display: flex;
+  margin: 0;
+  gap: var(--jargon-space-2);
+  border-top: 1px solid var(--jargon-border);
+  padding-top: var(--jargon-space-3);
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+}
+
+.marketplace-suggestion-unavailable svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+  flex: 0 0 auto;
+  margin-top: var(--jargon-space-0-5);
+  color: var(--jargon-text-muted);
+}
+
+.marketplace-suggestion-dismissed {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+}
