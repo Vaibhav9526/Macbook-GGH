@@ -1,0 +1,57 @@
+import { INPUT_LIMITS } from "@jargon/contracts/input-limits";
+import { z } from "zod";
+
+const handoff = {
+  recipientAgentId: z.string(),
+  task: z.string().min(1).max(INPUT_LIMITS.messageText),
+  expectedResult: z.string().min(1).max(INPUT_LIMITS.messageText),
+  sourceMessageIds: z.array(z.string()).min(1),
+  resources: z
+    .array(z.string())
+    .describe(
+      "Use browser when the task uses the shared browser, and workspace:<absolute path> for each folder it changes. Tasks that declare the same resource run one after the other. Omit it, or use none, when the task needs neither.",
+    )
+    .optional(),
+  dependencies: z.array(z.string()).optional(),
+};
+
+export const CHANNEL_TOOL_DEFINITIONS: readonly { name: string; description: string; shape: z.ZodRawShape }[] = [
+  {
+    name: "channel_history",
+    description: "Read earlier shared channel messages. This never starts another agent.",
+    shape: {
+      beforeSequence: z.number().int().min(0).optional(),
+      attachmentId: z.string().optional(),
+    },
+  },
+  {
+    name: "channel_assign",
+    description:
+      "Assign one specific subtask to another channel member. You stay the owner: integrate the result and report to the user. End your turn while waiting for required results. Use only inside a channel task; for direct teammate work outside a channel use jargon.send_message.",
+    shape: handoff,
+  },
+  {
+    name: "channel_transfer",
+    description:
+      "Transfer this whole task to another channel member. You stop working on it. End your turn after the transfer.",
+    shape: handoff,
+  },
+  {
+    name: "channel_result",
+    description:
+      "Publish the requested task result once in the shared chat when answering an assigned or transferred task. End your turn without repeating it.",
+    shape: { text: z.string().min(1).max(INPUT_LIMITS.messageText) },
+  },
+  {
+    name: "channel_remember",
+    description:
+      "Save one short, durable fact about this channel that every member should keep. Save the same text again to correct it. This writes immediately.",
+    shape: { text: z.string().min(1).max(INPUT_LIMITS.agentMemoryText) },
+  },
+  {
+    name: "channel_forget_memory",
+    description:
+      "Delete one saved channel memory when the user asks the channel to forget it. Give its text exactly as it is listed.",
+    shape: { text: z.string().min(1).max(INPUT_LIMITS.agentMemoryText) },
+  },
+];

@@ -1,0 +1,121 @@
+$ bun scripts/dev-services.ts app
+$ bun ../../scripts/run-development.ts api
+$ bun --watch src/index.ts
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\ingress-queue.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\host-grant.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\slack-route.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\discord-route.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\discord-app.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\webhook-route.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\telegram-route.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\decode.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\messages.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\discord-api.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\runtime-values.ts is not in the project directory and will not be watched
+warn: File D:\Hackathon\Rungta\jargon\packages\contracts\src\signal-protocol\ticket.ts is not in the project directory and will not be watched
+
+DevTools listening on ws://127.0.0.1:9333/devtools/browser/2c136112-b7bb-4e85-95ad-f58dcadf87b2
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/apps/items/properties/pid"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/apps/items/properties/pid"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/current_space_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/current_space_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/current_space_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/current_space_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/space_ids/items"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/space_ids/items"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/window_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/windows/items/properties/window_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/element_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/element_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/depth"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/depth"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/element_index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/element_index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/parent_index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elements/items/properties/parent_index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/filtered_element_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/filtered_element_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/pid"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/pid"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/returned_element_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/returned_element_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/screenshot_height"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/screenshot_height"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/screenshot_width"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/screenshot_width"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/total_element_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/total_element_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/window_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/window_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elapsed_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/elapsed_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/predicates/items/properties/index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/predicates/items/properties/index"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/samples"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/samples"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/visual_state/properties/frame"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/visual_state/properties/frame"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/visual_state/properties/preempted_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/visual_state/properties/preempted_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/delivery/properties/delivered_count"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/idle_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/idle_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/sessions/items/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/sessions/items/properties/expires_in_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/sessions/items/properties/idle_seconds"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/sessions/items/properties/idle_seconds"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/capture/properties/source/oneOf/0/properties/pid"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/capture/properties/source/oneOf/0/properties/pid"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/capture/properties/source/oneOf/0/properties/window_id"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/capture/properties/source/oneOf/0/properties/window_id"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/regions/items/properties/reading_order"
+unknown format "uint32" ignored in schema at path "#/anyOf/0/properties/regions/items/properties/reading_order"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/duration_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/inference_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/inference_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/preprocess_ms"
+unknown format "uint64" ignored in schema at path "#/anyOf/0/properties/timing/properties/preprocess_ms"
+(node:7240) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 event listeners added to [AgentService]. MaxListeners is 10. Use emitter.setMaxListeners() to increase limit
+(Use `electron --trace-warnings ...` to show where the warning was created)
+2026-10-22T19:27:44.063Z WARN [provider-runtime] A provider did not start. {"provider":"acp","stage":"cli","durationMs":1,"timeout":false,"message":"No custom agent is saved."}
+2026-10-22T19:27:44.075Z WARN [provider-runtime] A provider did not start. {"provider":"antigravity","stage":"cli","durationMs":29,"timeout":false,"message":"Gemini is not downloaded. Download it in Jargon to continue."}
+2026-10-22T19:27:44.581Z WARN [provider-runtime] A provider did not start. {"provider":"cline","stage":"cli","durationMs":527,"timeout":false,"message":"Cline is not downloaded. Download it in Jargon to continue."}
+2026-10-22T19:27:44.610Z WARN [provider-runtime] A provider did not start. {"provider":"grok","stage":"cli","durationMs":577,"timeout":false,"message":"Grok is not downloaded. Download it in Jargon to continue."}
+2026-10-22T19:27:44.623Z WARN [provider-runtime] A provider did not start. {"provider":"muse","stage":"cli","durationMs":614,"timeout":false,"message":"The muse CLI is not installed. Download it in Settings."}
+2026-10-22T19:27:44.626Z WARN [provider-runtime] A provider did not start. {"provider":"cursor","stage":"cli","durationMs":579,"timeout":false,"message":"Cursor is not downloaded. Download it in Jargon to continue."}
+2026-10-22T19:27:44.635Z WARN [provider-runtime] A provider did not start. {"provider":"codex","stage":"cli","durationMs":619,"timeout":false,"message":"Codex CLI 0.153.4 is too old. Jargon requires 0.156.0 or newer."}
+2026-10-22T19:27:45.345Z WARN [provider-runtime] A provider did not start. {"provider":"pi","stage":"cli","durationMs":1360,"timeout":false,"message":"Pi 0.87.0 is too old. Install Pi 1.1.0 or later for native RPC and MCP support."}
+2026-10-22T19:27:45.368Z WARN [provider-runtime] A provider did not start. {"provider":"inception","stage":"cli","durationMs":1364,"timeout":false,"message":"Pi 0.87.0 is too old. Install Pi 1.1.0 or later for native RPC and MCP support."}
+error: script "dev" exited with code 1

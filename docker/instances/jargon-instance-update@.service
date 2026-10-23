@@ -1,0 +1,10 @@
+# Pulls the image of instance %i, and for an install makes the container again. `setup` replaces
+# /opt/jargon-docker/instances/ with the folder of jargon-instance.
+[Unit]
+Description=Update Jargon instance %i
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/jargon-docker/instances/jargon-instance update-request %i
+TimeoutStartSec=45min

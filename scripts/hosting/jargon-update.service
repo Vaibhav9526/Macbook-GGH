@@ -1,0 +1,14 @@
+# Downloads and unpacks a newer Jargon release next to the running one. jargon-update.timer starts
+# it; jargon-update-apply.service moves the release into place at the next start of the server.
+[Unit]
+Description=Stage an Jargon update
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/Jargon/hosted/jargon-hosted-update stage
+Nice=19
+IOSchedulingClass=idle
+CPUWeight=idle
+TimeoutStartSec=30min

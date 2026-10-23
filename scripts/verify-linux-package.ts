@@ -1,0 +1,403 @@
+import { spawn } from "node:child_process";
+import { constants, existsSync } from "node:fs";
+import { access, lstat, mkdtemp, readdir, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
+import { FuseV1Options, getCurrentFuseWire } from "@electron/fuses";
+import { isDynamicRecord, isNumber, isString } from "@jargon/contracts/runtime-values";
+import { createJargonLogger, toLogValue } from "@jargon/logging";
+import { isMissingFileError } from "../src/backend/file-errors";
+
+const logger = createJargonLogger("verify-linux-package");
+
+// Each launch step ends on a state or an event. This limit only turns a real hang into a clear failure:
+// a slow release runner can need much more time than usual to start the first instance.
+const launchStepLimitMs = 5 * 60_000;
+
+/** The scripts that a server installs from a release (`RELEASE_FILES` in scripts/hosting/jargon-hosted-update). */
+const HOSTED_SCRIPTS = [
+  "jargon-hosted-server",
+  "jargon-hosted-env",
+  "jargon-hosted-update",
+  "jargon",
+  "jargon-boat-pre-stop",
+  // Not installed on a server: `install-server.sh` runs it from the unpacked release.
+  "jargon-server-setup",
+];
+const HOSTED_UNITS = [
+  "jargon.service",
+  "jargon-update.service",
+  "jargon-update.timer",
+  "jargon-update-apply.service",
+  "jargon-update-request.path",
+  "jargon-update-request.service",
+];
+
+const FUSE_DISABLED = 48;
+const FUSE_ENABLED = 49;
+
+if (process.platform !== "linux") {
+  throw new Error("The Linux package verifier must run on Linux.");
+}
+
+/** The verifier checks a build for the host it runs on: CI builds each architecture on its own runner. */
+const LINUX_ARCHITECTURES = {
+  x64: { label: "x86-64", elfMachine: 0x3e },
+  arm64: { label: "AArch64", elfMachine: 0xb7 },
+} as const;
+const architecture = process.arch;
+if (architecture !== "x64" && architecture !== "arm64") {
+  throw new Error(`The Linux package verifier does not support ${architecture}.`);
+}
+const target = LINUX_ARCHITECTURES[architecture];
+
+const requireUpdateMetadata = process.argv.includes("--require-update-metadata");
+const appPathArgument = process.argv.slice(2).find((argument) => !argument.startsWith("--"));
+const appPath = resolve(
+  appPathArgument ?? (architecture === "x64" ? "dist/linux-unpacked" : "dist/linux-arm64-unpacked"),
+);
+// electron-builder names the Linux binary after `name` in package.json, not `productName`.
+const executablePath = resolve(appPath, "jargon");
+const resourcesPath = resolve(appPath, "resources");
+const asarPath = resolve(resourcesPath, "app.asar");
+
+await Promise.all([
+  access(executablePath),
+  access(resolve(resourcesPath, "app.asar.unpacked/node_modules/effect/package.json")),
+  access(resolve(resourcesPath, "app.asar.unpacked/node_modules/effect/dist/index.js")),
+  access(asarPath),
+  access(resolve(resourcesPath, "managed-skills")),
+  access(resolve(resourcesPath, "licenses/Electron-LICENSE")),
+  access(resolve(resourcesPath, "licenses/LICENSES.chromium.html")),
+  // A hosted server refuses an update to a release without all of its hosting files.
+  ...["packages.txt", "jargon-hosted.apparmor", ...HOSTED_UNITS].map((file) =>
+    access(resolve(resourcesPath, "hosting", file)),
+  ),
+  ...HOSTED_SCRIPTS.map((file) => access(resolve(resourcesPath, "hosting", file), constants.X_OK)),
+  // Computer Use is the one native runtime the Linux build does ship.
+  access(resolve(resourcesPath, `cua-driver/linux/${architecture}/cua-driver`)),
+  access(resolve(resourcesPath, `cua-driver/linux/${architecture}/wayland-helper/winrects@cua/extension.js`)),
+  access(resolve(resourcesPath, `cua-driver/linux/${architecture}/LICENSE.md`)),
+]);
+await Promise.all(
+  ["darwin", "win32"].map((name) =>
+    assertAbsent(resolve(resourcesPath, "cua-driver", name), "Only this platform's driver ships"),
+  ),
+);
+
+// Voice is not built for Linux. This assertion is the regression guard for the platform split of
+// `extraResources`: if it ever returns to the shared list, the Linux build either fails outright
+// on a missing source or ships a runtime it cannot use.
+await assertAbsent(resolve(resourcesPath, "voice"), "Voice transcription is not available on Linux");
+// The remote desktop runtime is built for x64 only, and only for this platform.
+if (architecture === "x64") {
+  await Promise.all(
+    ["sunshine", "web-server", "streamer", "static/stream.html"].map((name) =>
+      access(resolve(resourcesPath, "remote-desktop-runtime/linux/x64", name)),
+    ),
+  );
+  await Promise.all(
+    ["darwin", "win32"].map((name) =>
+      assertAbsent(resolve(resourcesPath, "remote-desktop-runtime", name), "Only this platform's runtime ships"),
+    ),
+  );
+} else {
+  await assertAbsent(
+    resolve(resourcesPath, "remote-desktop-runtime"),
+    "Remote desktop is not available on Linux arm64",
+  );
+}
+
+// Providers and the tunnel are downloaded on demand, exactly as on macOS and Windows.
+await Promise.all(
+  ["codex", "claude", "grok", "cloudflared"].map((name) =>
+    assertAbsent(resolve(resourcesPath, name), "Runtimes must not be packaged"),
+  ),
+);
+await assertAbsent(
+  resolve(resourcesPath, `app.asar.unpacked/node_modules/@anthropic-ai/claude-agent-sdk-linux-${architecture}`),
+  "The native Claude runtime must not be duplicated",
+);
+
+const packageJson = JSON.parse(await readFile("package.json", "utf8"));
+if (!isDynamicRecord(packageJson)) throw new Error("package.json is not a JSON object.");
+if (!isString(packageJson.version)) throw new Error("package.json version is missing.");
+
+// The Linux build has no version resource to read, so the packaged manifest is the record of what
+// was built. It is the same file the running app reports through `app.getVersion()`.
+const packagedManifest = JSON.parse(await readAsarFile(asarPath, "package.json"));
+if (!isDynamicRecord(packagedManifest)) throw new Error("The packaged package.json is not a JSON object.");
+expectEqual(packagedManifest.name, "jargon", "packaged name");
+expectEqual(packagedManifest.productName, "Jargon", "packaged product name");
+expectEqual(packagedManifest.version, packageJson.version, "packaged version");
+
+const executable = await readFile(executablePath);
+if (executable.toString("binary", 0, 4) !== "\x7fELF") throw new Error("The executable has no ELF header.");
+if (executable[4] !== 2) throw new Error("Expected a 64-bit ELF executable.");
+const machine = executable.readUInt16LE(18);
+if (machine !== target.elfMachine) {
+  throw new Error(
+    `Expected a Linux ${target.label} executable, but its ELF machine type is 0x${machine.toString(16)}.`,
+  );
+}
+
+const appImages = existsSync("dist") ? await findAppImages() : [];
+for (const appImage of appImages) {
+  if (!appImage.startsWith(`Jargon-${packageJson.version}-`)) {
+    throw new Error(`Unexpected AppImage name: ${appImage} (expected Jargon-${packageJson.version}-<arch>.AppImage)`);
+  }
+}
+
+const updateMetadataPath = resolve(resourcesPath, "app-update.yml");
+let updateMetadata: string | null = null;
+try {
+  updateMetadata = await readFile(updateMetadataPath, "utf8");
+} catch (error) {
+  if (requireUpdateMetadata) throw error;
+}
+if (updateMetadata !== null && !updateMetadata.includes("provider: github")) {
+  throw new Error("The packaged update provider is not GitHub.");
+}
+
+const fuses = await getCurrentFuseWire(executablePath);
+const expectedFuses: Array<[FuseV1Options, number]> = [
+  [FuseV1Options.RunAsNode, FUSE_DISABLED],
+  [FuseV1Options.EnableCookieEncryption, FUSE_ENABLED],
+  [FuseV1Options.EnableNodeOptionsEnvironmentVariable, FUSE_DISABLED],
+  [FuseV1Options.EnableNodeCliInspectArguments, FUSE_DISABLED],
+  [FuseV1Options.EnableEmbeddedAsarIntegrityValidation, FUSE_ENABLED],
+  [FuseV1Options.OnlyLoadAppFromAsar, FUSE_ENABLED],
+  [FuseV1Options.LoadBrowserProcessSpecificV8Snapshot, FUSE_DISABLED],
+  [FuseV1Options.GrantFileProtocolExtraPrivileges, FUSE_DISABLED],
+];
+for (const [fuse, expected] of expectedFuses) {
+  if (fuses[fuse] !== expected) {
+    throw new Error(`Unexpected Electron fuse ${FuseV1Options[fuse]}: ${String(fuses[fuse])}`);
+  }
+}
+
+await verifyLaunch(executablePath);
+
+logger.info(`Verified ${appPath}`);
+logger.info(
+  `Jargon ${packageJson.version} · Linux ${architecture} · manifest · no voice or remote desktop · ASAR integrity · hardened fuses · launch`,
+);
+
+function expectEqual(actual: unknown, expected: unknown, label: string): void {
+  if (actual !== expected) {
+    throw new Error(`Unexpected ${label}: ${String(actual)} (expected ${String(expected)})`);
+  }
+}
+
+async function assertAbsent(path: string, reason: string): Promise<void> {
+  try {
+    await access(path);
+  } catch {
+    return;
+  }
+  throw new Error(`${reason}: ${path}`);
+}
+
+async function findAppImages(): Promise<string[]> {
+  return (await readdir("dist")).filter((name) => name.endsWith(".AppImage"));
+}
+
+/**
+ * Reads one top-level file out of an asar archive.
+ *
+ * The archive opens with four little-endian 32-bit words - a constant `4`, the size of the header
+ * block, the size of the JSON inside it, and the length of the JSON string itself - and then the
+ * JSON file table, which gives every entry an offset into the data that follows the header block.
+ * Doing this here keeps the verifier on the declared dependencies: `@electron/asar` is only a
+ * transitive dependency of electron-builder, and reading four words of a stable on-disk format is a
+ * smaller commitment than depending on it.
+ */
+async function readAsarFile(archive: string, name: string): Promise<string> {
+  const buffer = await readFile(archive);
+  const headerSize = buffer.readUInt32LE(4);
+  const headerJsonLength = buffer.readUInt32LE(12);
+  const header = JSON.parse(buffer.toString("utf8", 16, 16 + headerJsonLength));
+  if (!isDynamicRecord(header) || !isDynamicRecord(header.files)) {
+    throw new Error(`${archive} has no asar file table.`);
+  }
+  const entry = header.files[name];
+  if (!isDynamicRecord(entry) || !isString(entry.offset) || !isNumber(entry.size)) {
+    throw new Error(`${archive} does not contain ${name}.`);
+  }
+  const start = 8 + headerSize + Number(entry.offset);
+  return buffer.toString("utf8", start, start + entry.size);
+}
+
+/**
+ * Starts the packaged application once and makes sure it stays up.
+ *
+ * This needs a display, so in CI it runs under `xvfb-run -a`. It cannot be verified on a macOS
+ * worktree at all: the verifier refuses to run there, and a headless Electron does not reach
+ * `ready` in an agent shell.
+ *
+ * No `--no-sandbox` here or anywhere else. If the launch fails with a user-namespace error, the
+ * host is missing the AppArmor profile, which is a real defect in the install instructions rather
+ * than something to switch the sandbox off for.
+ */
+async function verifyLaunch(executable: string): Promise<void> {
+  if (!process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
+    throw new Error("The launch check needs a display. Run it under `xvfb-run -a`.");
+  }
+  const userDataPath = await mkdtemp(join(tmpdir(), "jargon-package-smoke-"));
+  const child = spawn(executable, [`--user-data-dir=${userDataPath}`], {
+    env: launchEnvironment(userDataPath),
+    stdio: ["ignore", "ignore", "pipe"],
+  });
+  let stderr = "";
+  child.stderr.setEncoding("utf8");
+  child.stderr.on("data", (chunk: string) => {
+    stderr = `${stderr}${chunk}`.slice(-4_000);
+  });
+
+  const launchExit = new Promise<never>((_, reject) => {
+    child.once("exit", (code, signal) => {
+      reject(
+        new Error(`Packaged Jargon exited during launch (${signal ?? `code ${String(code)}`}): ${stderr.trim()}`),
+      );
+    });
+  });
+
+  try {
+    // Chromium makes `SingletonLock` in userData when main takes its single-instance lock. A second
+    // instance that starts before that does not forward to the first one: it takes the lock and stays open.
+    await waitForFirstInstance(
+      launchExit,
+      () => pathExists(join(userDataPath, "SingletonLock")),
+      "take its lock",
+      () => stderr,
+    );
+    // The lock is not enough. The second instance waits about 20 seconds for the first one to answer, and
+    // the answer needs a free main thread; with no answer, Chromium can kill the first instance. Main
+    // answers only after its start, and a launch that stops during the start must fail here. So this
+    // waits until the window has loaded and called main (`trace.ndjson`, see `rendererCalledMain`).
+    await waitForFirstInstance(
+      launchExit,
+      () => rendererCalledMain(userDataPath),
+      "load its window",
+      () => stderr,
+    );
+    await verifySecondInstanceExits(executable, userDataPath, launchExit);
+    if (child.exitCode !== null || child.signalCode !== null) {
+      throw new Error(
+        `Packaged Jargon exited when a second instance started (${child.signalCode ?? `code ${String(child.exitCode)}`}): ${stderr.trim()}`,
+      );
+    }
+  } finally {
+    child.kill("SIGTERM");
+    await Promise.race([
+      new Promise<void>((resolveExit) => child.once("exit", () => resolveExit())),
+      new Promise<void>((resolveDelay) => setTimeout(resolveDelay, 5_000)),
+    ]);
+    child.kill("SIGKILL");
+    try {
+      await rm(userDataPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 300 });
+    } catch (error) {
+      logger.warn("Could not remove the temporary Linux profile:", toLogValue(error));
+    }
+  }
+}
+
+function launchEnvironment(userDataPath: string): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    CODEX_HOME: join(userDataPath, "codex-home"),
+    CLAUDE_CONFIG_DIR: join(userDataPath, "claude-home"),
+    JARGON_CODEX_PATH: join(userDataPath, "missing-codex"),
+    JARGON_CLAUDE_PATH: join(userDataPath, "missing-claude"),
+    JARGON_GROK_PATH: join(userDataPath, "missing-grok"),
+  };
+}
+
+/** Waits for a state of the first instance. It fails immediately when the first instance exits. */
+async function waitForFirstInstance(
+  launchExit: Promise<never>,
+  reached: () => Promise<boolean>,
+  step: string,
+  stderr: () => string,
+): Promise<void> {
+  const stop = new AbortController();
+  const waitForState = async () => {
+    const limit = Date.now() + launchStepLimitMs;
+    while (!(await reached())) {
+      if (Date.now() > limit) {
+        throw new Error(`Packaged Jargon did not ${step} in 5 minutes: ${stderr().trim()}`);
+      }
+      await delay(200, undefined, { signal: stop.signal });
+    }
+  };
+  try {
+    await Promise.race([launchExit, waitForState()]);
+  } finally {
+    stop.abort();
+  }
+}
+
+// `SingletonLock` is a symbolic link to a host and process name, not to a file, so it must not be followed.
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await lstat(path);
+    return true;
+  } catch (error) {
+    if (isMissingFileError(error)) return false;
+    throw error;
+  }
+}
+
+/**
+ * Whether the window of the first instance has called main. The renderer asks main for `getAppInfo` when
+ * it mounts (src/renderer/src/platform.tsx), main records each trusted call in `logs/trace.ndjson`
+ * (`setIpcCallObserver` in src/main/index.ts), and a main-thread timer writes the line about one second later.
+ */
+async function rendererCalledMain(userDataPath: string): Promise<boolean> {
+  try {
+    return (await readFile(join(userDataPath, "logs", "trace.ndjson"), "utf8")).includes('"kind":"ipc"');
+  } catch (error) {
+    if (isMissingFileError(error)) return false;
+    throw error;
+  }
+}
+
+async function verifySecondInstanceExits(
+  executable: string,
+  userDataPath: string,
+  launchExit: Promise<never>,
+): Promise<void> {
+  const second = spawn(executable, [`--user-data-dir=${userDataPath}`], {
+    env: launchEnvironment(userDataPath),
+    stdio: ["ignore", "ignore", "pipe"],
+  });
+  let stderr = "";
+  second.stderr.setEncoding("utf8");
+  second.stderr.on("data", (chunk: string) => {
+    stderr = `${stderr}${chunk}`.slice(-4_000);
+  });
+  const stop = new AbortController();
+  try {
+    // The second instance exits only after the first one accepts its arguments. A busy first instance
+    // accepts them later, so this waits for the exit and not for a fixed time.
+    const result = await Promise.race([
+      new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolveExit) => {
+        second.once("exit", (code, signal) => resolveExit({ code, signal }));
+      }),
+      launchExit,
+      delay(launchStepLimitMs, null, { signal: stop.signal }),
+    ]);
+    if (!result) {
+      throw new Error(`A second Jargon instance did not exit in 5 minutes: ${stderr.trim()}`);
+    }
+    if (result.code !== 0 || result.signal) {
+      throw new Error(
+        `A second Jargon instance exited unexpectedly (${result.signal ?? `code ${String(result.code)}`}): ${stderr.trim()}`,
+      );
+    }
+  } finally {
+    stop.abort();
+    if (second.exitCode === null && second.signalCode === null) second.kill("SIGKILL");
+  }
+}
