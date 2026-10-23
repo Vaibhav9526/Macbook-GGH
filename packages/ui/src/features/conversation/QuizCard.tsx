@@ -1,9 +1,27 @@
 // The School quiz card. Ported from IsCool (src/renderer/src/components/classroom/QuizCard.tsx): the same
-// phases (loading, taking, grading, report), the same grading view and the same sections. React became SolidJS,
-// and the colours map to this app's tokens.
+// phases (loading, taking, grading, report) and the same grading data. It shows one question at a time with a
+// progress bar, and ends with a summary: the score, the wrong answers, and the Teacher's weak topics.
+// React became SolidJS, and the colours map to this app's tokens.
 import type { SchoolQuizData, SchoolQuizGraded, SchoolQuizReport } from "@jargon/contracts/ipc";
+import {
+  BookOpen,
+  Brain,
+  Button,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  IconButton,
+  Link,
+  ListChecks,
+  Minus,
+  Progress,
+  X,
+  Zap,
+} from "@jargon/ui";
 import type { JSX } from "@solidjs/web";
-import { For, Show } from "solid-js";
+import { createEffect, For, Show } from "solid-js";
+import { QuizDiagram } from "./QuizDiagram";
 
 export type QuizPhase = "loading" | "taking" | "grading" | "report";
 
@@ -12,427 +30,411 @@ export interface QuizResultView {
   report: SchoolQuizReport | null;
   /** Set when the score is real but the written analysis could not be produced. */
   analysisError?: string;
+  /** The weak topics that this quiz saved, so the next quiz builds on them. */
+  savedTopics: string[];
 }
 
 export interface QuizCardLabels {
   loading: string;
   title: (topic: string) => string;
-  answered: (answered: number, total: number) => string;
+  position: (current: number, total: number) => string;
+  progress: string;
   close: string;
+  back: string;
+  next: string;
   unanswered: string;
   submit: string;
   grading: string;
   score: (correct: number, total: number, percent: number) => string;
-  right: string;
-  wrong: string;
   skipped: string;
   correctAnswer: string;
   yourAnswer: string;
+  wrongTitle: string;
+  allCorrect: string;
+  diagram: (xLabel: string, yLabel: string) => string;
   focusTitle: string;
   focusNone: string;
   missed: (missed: number, of: number) => string;
-  advice: string;
-  weakPoints: string;
   fix: string;
   strengths: string;
   learnMore: string;
   linksNote: string;
   onYoutube: string;
+  savedTitle: string;
+  savedNote: string;
   done: string;
   analysisError: string;
+  jumpTo: (question: number) => string;
 }
 
 const LETTERS = ["A", "B", "C", "D"];
-
-const CARD: JSX.CSSProperties = {
-  padding: "14px",
-  "border-radius": "14px",
-  background: "var(--jargon-bg-surface)",
-  border: "1px solid var(--jargon-border)",
-  color: "var(--jargon-text-primary)",
-  display: "flex",
-  "flex-direction": "column",
-  gap: "12px",
-};
-
-// Icon paths, drawn for this card (16 x 16 grid, stroke only).
-const ICON = {
-  check: "M3 8.5 6.5 12 13 4.5",
-  cross: "M4 4l8 8M12 4l-8 8",
-  skip: "M3 8h10",
-  target: "M8 2.5 13.5 8 8 13.5 2.5 8z",
-  bolt: "M9 1 3 9h4l-1 6 6-8H8z",
-  books: "M3 2h4v12H3zM9 2h4v12H9z",
-  book: "M3 3h9v10H3z",
-  link: "M6.5 9.5 9.5 6.5M5 8 3.5 9.5a2.5 2.5 0 0 0 3.5 3.5L8.5 11.5M11 8l1.5-1.5A2.5 2.5 0 0 0 9 3L7.5 4.5",
-  quiz: "M3 3h10v10H3zM6 6h4M6 9h4",
-} as const;
-
-function Glyph(props: { d: string; size?: number; label?: string }) {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      width={props.size ?? 14}
-      height={props.size ?? 14}
-      fill="none"
-      stroke="currentColor"
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      role={props.label ? "img" : undefined}
-      aria-label={props.label}
-      aria-hidden={props.label ? undefined : "true"}
-    >
-      <path d={props.d} />
-    </svg>
-  );
-}
 
 export function QuizCard(props: {
   phase: QuizPhase;
   quiz: SchoolQuizData | null;
   picks: Array<number | null>;
+  /** The question on screen, from 0. */
+  index: number;
   result: QuizResultView | null;
   error: string;
   onPick: (question: number, option: number) => void;
+  onIndex: (question: number) => void;
   onSubmit: () => void;
   onClose: () => void;
   /** Opens a suggested resource in the browser. The search links are built in main. */
   onOpenLink?: (href: string) => void;
   labels: QuizCardLabels;
 }) {
-  const answered = () => props.picks.filter((pick) => pick !== null).length;
   const reviewing = () => props.phase === "report" && props.result !== null;
-  const locked = () => reviewing() || props.phase === "grading";
+  let body: HTMLDivElement | undefined;
+  // A new question, or the summary, starts at the top of the scrolling body.
+  createEffect(
+    () => [props.index, reviewing()],
+    () => {
+      if (body) body.scrollTop = 0;
+    },
+  );
+  const locked = () => props.phase === "grading";
 
   return (
     <Show
       when={props.quiz}
       fallback={
-        <div style={{ ...CARD, "flex-direction": "row", "align-items": "center", gap: "8px" }}>
-          <Glyph d={ICON.quiz} size={18} /> {props.labels.loading}
+        <div class="quiz-card quiz-card-loading" role="status">
+          <ListChecks class="quiz-card-glyph" aria-hidden="true" />
+          <span>{props.labels.loading}</span>
+          <Progress class="quiz-card-progress" indeterminate aria-label={props.labels.loading} />
         </div>
       }
     >
-      {(quizAccessor) => (
-        <div style={CARD} data-quiz-phase={props.phase}>
-          <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
-            <strong style={{ "font-size": "15px", display: "inline-flex", "align-items": "center", gap: "6px" }}>
-              <Glyph d={ICON.quiz} size={18} /> {props.labels.title(quizAccessor().topic)}
-            </strong>
-            <span style={{ flex: "1" }} />
-            <Show when={!reviewing()}>
-              <span style={{ "font-size": "12px", color: "var(--jargon-text-muted)" }}>
-                {props.labels.answered(answered(), quizAccessor().questions.length)}
-              </span>
-            </Show>
-            <button
-              type="button"
-              onClick={() => props.onClose()}
-              aria-label={props.labels.close}
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                color: "var(--jargon-text-muted)",
-                "font-size": "16px",
-              }}
-            >
-              ×
-            </button>
-          </div>
+      {(quizAccessor) => {
+        const total = () => quizAccessor().questions.length;
+        const answered = () => props.picks.filter((pick) => pick !== null).length;
+        const last = () => props.index >= total() - 1;
+        const question = () => quizAccessor().questions[props.index];
+        const progress = () => (reviewing() ? 100 : ((props.index + 1) / Math.max(1, total())) * 100);
+        return (
+          <div class="quiz-card" data-quiz-phase={props.phase}>
+            <header class="quiz-card-header">
+              <strong class="quiz-card-title">
+                <ListChecks class="quiz-card-glyph" aria-hidden="true" />
+                {props.labels.title(quizAccessor().topic)}
+              </strong>
+              <Show when={!reviewing()}>
+                <span class="quiz-card-count">{props.labels.position(props.index + 1, total())}</span>
+              </Show>
+              <IconButton variant="ghost" size="icon-sm" label={props.labels.close} onClick={() => props.onClose()}>
+                <X aria-hidden="true" />
+              </IconButton>
+            </header>
+            <Progress
+              class="quiz-card-progress"
+              value={props.phase === "grading" ? undefined : progress()}
+              indeterminate={props.phase === "grading"}
+              minValue={0}
+              maxValue={100}
+              aria-label={props.labels.progress}
+            />
 
-          <Show when={reviewing() ? props.result : null}>
-            {(resultAccessor) => {
-              const tone = () =>
-                resultAccessor().graded.percent >= 70
-                  ? "var(--jargon-success-soft)"
-                  : resultAccessor().graded.percent >= 40
-                    ? "var(--jargon-bg-control)"
-                    : "var(--jargon-danger-soft)";
-              return (
-                <div style={{ padding: "12px", "border-radius": "12px", background: tone() }}>
-                  <div style={{ "font-size": "22px", "font-weight": "800" }}>
-                    {props.labels.score(
-                      resultAccessor().graded.correct,
-                      resultAccessor().graded.total,
-                      resultAccessor().graded.percent,
+            <div class="quiz-card-body" ref={body}>
+              <Show
+                when={reviewing() ? props.result : null}
+                fallback={
+                  <Show when={question()}>
+                    {(current) => (
+                      <section class="quiz-question" aria-live="polite">
+                        <h3 class="quiz-question-text">
+                          {props.index + 1}. {current().q}
+                        </h3>
+                        <Show when={current().diagram}>
+                          {(diagram) => (
+                            <QuizDiagram
+                              diagram={diagram()}
+                              label={props.labels.diagram(diagram().xLabel, diagram().yLabel)}
+                            />
+                          )}
+                        </Show>
+                        <fieldset class="quiz-options" aria-label={current().q}>
+                          <For each={current().options}>
+                            {(option, optionIndex) => {
+                              const picked = () => props.picks[props.index] === optionIndex();
+                              return (
+                                <button
+                                  type="button"
+                                  class="quiz-option"
+                                  disabled={locked()}
+                                  aria-pressed={picked() ? "true" : "false"}
+                                  data-picked={picked() ? "true" : undefined}
+                                  onClick={() => props.onPick(props.index, optionIndex())}
+                                >
+                                  <strong class="quiz-option-letter">{LETTERS[optionIndex()] ?? ""}</strong>
+                                  <span class="quiz-option-text">{option}</span>
+                                </button>
+                              );
+                            }}
+                          </For>
+                        </fieldset>
+                      </section>
                     )}
-                  </div>
-                  <Show when={resultAccessor().report?.summary}>
-                    <div style={{ "font-size": "14px", "margin-top": "4px", "line-height": "20px" }}>
-                      {resultAccessor().report?.summary}
-                    </div>
                   </Show>
-                </div>
-              );
-            }}
-          </Show>
-
-          <For each={quizAccessor().questions}>
-            {(question, questionIndex) => {
-              const picked = () => props.picks[questionIndex()] ?? null;
-              return (
-                <div style={{ display: "flex", "flex-direction": "column", gap: "6px" }}>
-                  <div style={{ "font-size": "14px", "font-weight": "700", "line-height": "20px" }}>
-                    {questionIndex() + 1}. {question.q}
-                  </div>
-                  <For each={question.options}>
-                    {(option, optionIndex) => {
-                      const isPicked = () => picked() === optionIndex();
-                      const isRight = () => reviewing() && optionIndex() === question.answer;
-                      const isWrongPick = () => reviewing() && isPicked() && optionIndex() !== question.answer;
-                      return (
-                        <button
-                          type="button"
-                          disabled={locked()}
-                          onClick={() => props.onPick(questionIndex(), optionIndex())}
-                          aria-pressed={isPicked() ? "true" : "false"}
-                          style={{
-                            display: "flex",
-                            gap: "10px",
-                            "align-items": "baseline",
-                            "text-align": "left",
-                            border: "none",
-                            cursor: locked() ? "default" : "pointer",
-                            padding: "7px 10px",
-                            "border-radius": "10px",
-                            "font-size": "14px",
-                            "line-height": "19px",
-                            color: "var(--jargon-text-primary)",
-                            background: isRight()
-                              ? "var(--jargon-success-soft)"
-                              : isWrongPick()
-                                ? "var(--jargon-danger-soft)"
-                                : isPicked()
-                                  ? "var(--jargon-accent-soft)"
-                                  : "var(--jargon-bg-control)",
-                            "box-shadow": `inset 0 0 0 ${isPicked() || isRight() ? 2 : 1}px ${
-                              isRight()
-                                ? "var(--jargon-success)"
-                                : isWrongPick()
-                                  ? "var(--jargon-danger)"
-                                  : isPicked()
-                                    ? "var(--jargon-accent)"
-                                    : "var(--jargon-border)"
-                            }`,
-                          }}
-                        >
-                          <strong>{LETTERS[optionIndex()] ?? ""}</strong>
-                          <span style={{ flex: "1" }}>{option}</span>
-                          <Show when={isRight()}>
-                            <Glyph d={ICON.check} size={16} label={props.labels.correctAnswer} />
-                          </Show>
-                          <Show when={isWrongPick()}>
-                            <Glyph d={ICON.cross} size={16} label={props.labels.yourAnswer} />
-                          </Show>
-                        </button>
-                      );
-                    }}
-                  </For>
-                  <Show when={reviewing() ? props.result : null}>
-                    {(resultAccessor) => {
-                      const item = () => resultAccessor().graded.items[questionIndex()];
-                      return (
-                        <div
-                          style={{
-                            "font-size": "13px",
-                            "line-height": "19px",
-                            color: "var(--jargon-text-secondary)",
-                            padding: "2px 4px",
-                          }}
-                        >
-                          {item()?.right ? (
-                            <Glyph d={ICON.check} />
-                          ) : picked() === null ? (
-                            <Glyph d={ICON.skip} />
-                          ) : (
-                            <Glyph d={ICON.cross} />
-                          )}{" "}
-                          {item()?.right
-                            ? props.labels.right
-                            : picked() === null
-                              ? props.labels.skipped
-                              : props.labels.wrong}{" "}
-                          {question.explanation}
-                        </div>
-                      );
-                    }}
-                  </Show>
-                </div>
-              );
-            }}
-          </For>
-
-          <Show when={!reviewing()}>
-            <div style={{ display: "flex", "align-items": "center", gap: "10px" }}>
-              <button
-                type="button"
-                onClick={() => props.onSubmit()}
-                disabled={answered() === 0 || props.phase === "grading"}
-                style={{
-                  border: "none",
-                  cursor: answered() === 0 || props.phase === "grading" ? "default" : "pointer",
-                  padding: "8px 16px",
-                  "border-radius": "10px",
-                  "font-size": "14px",
-                  "font-weight": "600",
-                  background:
-                    answered() === 0 || props.phase === "grading" ? "var(--jargon-bg-control)" : "var(--jargon-accent)",
-                  color:
-                    answered() === 0 || props.phase === "grading"
-                      ? "var(--jargon-text-muted)"
-                      : "var(--jargon-accent-text)",
-                }}
+                }
               >
-                {props.phase === "grading" ? props.labels.grading : props.labels.submit}
-              </button>
-              <Show when={answered() > 0 && answered() < quizAccessor().questions.length && props.phase !== "grading"}>
-                <span style={{ "font-size": "12px", color: "var(--jargon-text-muted)" }}>
-                  {props.labels.unanswered}
-                </span>
+                {(resultAccessor) => (
+                  <Summary
+                    quiz={quizAccessor()}
+                    picks={props.picks}
+                    result={resultAccessor()}
+                    labels={props.labels}
+                    onOpenLink={props.onOpenLink}
+                  />
+                )}
+              </Show>
+
+              <Show when={props.error}>
+                <p class="quiz-card-error" role="alert">
+                  {props.error}
+                </p>
               </Show>
             </div>
-          </Show>
 
-          <Show when={props.error}>
-            <div role="alert" style={{ "font-size": "12px", color: "var(--jargon-danger-text)" }}>
-              {props.error}
-            </div>
-          </Show>
-
-          <Show when={reviewing() ? props.result : null}>
-            {(resultAccessor) => (
-              <>
-                <Show when={resultAccessor().analysisError}>
-                  <div role="alert" style={{ "font-size": "13px", color: "var(--jargon-danger-text)" }}>
-                    {props.labels.analysisError}
-                  </div>
-                </Show>
-
-                <Show when={(resultAccessor().report?.weakPoints.length ?? 0) > 0}>
-                  <div>
-                    <div
-                      style={{
-                        "font-size": "14px",
-                        "font-weight": "800",
-                        "margin-bottom": "6px",
-                        display: "flex",
-                        "align-items": "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <Glyph d={ICON.target} size={18} /> {props.labels.weakPoints}
-                    </div>
-                    <For each={resultAccessor().report?.weakPoints ?? []}>
-                      {(weak) => (
-                        <div
-                          style={{
-                            padding: "8px 10px",
-                            "border-radius": "10px",
-                            background: "var(--jargon-danger-soft)",
-                            "margin-bottom": "6px",
-                            "font-size": "13px",
-                            "line-height": "19px",
-                          }}
-                        >
-                          <strong>{weak.concept}</strong>
-                          <div>{weak.why}</div>
-                          <div style={{ "margin-top": "2px" }}>
-                            <em>{props.labels.fix}:</em> {weak.tip}
-                          </div>
-                        </div>
-                      )}
-                    </For>
-                  </div>
-                </Show>
-
-                <Show when={(resultAccessor().report?.strengths.length ?? 0) > 0}>
-                  <div style={{ "font-size": "13px", "line-height": "19px" }}>
-                    <strong>
-                      <Glyph d={ICON.bolt} /> {props.labels.strengths}:
-                    </strong>{" "}
-                    {resultAccessor().report?.strengths.join(" · ")}
-                  </div>
-                </Show>
-
-                <Show when={hasResources(resultAccessor().report)}>
-                  <div>
-                    <div
-                      style={{
-                        "font-size": "14px",
-                        "font-weight": "800",
-                        "margin-bottom": "6px",
-                        display: "flex",
-                        "align-items": "center",
-                        gap: "6px",
-                      }}
-                    >
-                      <Glyph d={ICON.books} size={18} /> {props.labels.learnMore}
-                    </div>
-                    <div style={{ display: "flex", "flex-direction": "column", gap: "6px" }}>
-                      <For each={resultAccessor().report?.resources.youtube ?? []}>
-                        {(video) => (
-                          <ResourceButton href={video.url} onOpen={props.onOpenLink}>
-                            ▶ <strong>{video.channel}</strong> {props.labels.onYoutube}
-                            {video.why ? ` — ${video.why}` : ""}
-                          </ResourceButton>
-                        )}
-                      </For>
-                      <For each={resultAccessor().report?.resources.books ?? []}>
-                        {(book) => (
-                          <ResourceButton href={book.url} onOpen={props.onOpenLink}>
-                            <Glyph d={ICON.book} /> <strong>{book.title}</strong>
-                            {book.author ? ` — ${book.author}` : ""}
-                            {book.why ? ` · ${book.why}` : ""}
-                          </ResourceButton>
-                        )}
-                      </For>
-                      <For each={resultAccessor().report?.resources.other ?? []}>
-                        {(other) => (
-                          <ResourceButton href={other.url} onOpen={props.onOpenLink}>
-                            <Glyph d={ICON.link} /> <strong>{other.name}</strong>
-                            {other.why ? ` — ${other.why}` : ""}
-                          </ResourceButton>
-                        )}
-                      </For>
-                    </div>
-                    <div style={{ "font-size": "11px", color: "var(--jargon-text-muted)", "margin-top": "6px" }}>
-                      {props.labels.linksNote}
-                    </div>
-                  </div>
-                </Show>
-
-                <FocusSection
-                  focus={resultAccessor().graded.weakConcepts}
-                  title={props.labels.focusTitle}
-                  none={props.labels.focusNone}
-                  missed={props.labels.missed}
-                />
-
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => props.onClose()}
-                    style={{
-                      border: "none",
-                      cursor: "pointer",
-                      padding: "7px 14px",
-                      "border-radius": "10px",
-                      background: "var(--jargon-bg-control)",
-                      color: "var(--jargon-text-primary)",
-                      "font-size": "13px",
-                    }}
-                  >
+            <footer class="quiz-card-footer">
+              <Show
+                when={!reviewing()}
+                fallback={
+                  <Button variant="secondary" size="sm" onClick={() => props.onClose()}>
                     {props.labels.done}
-                  </button>
-                </div>
-              </>
-            )}
-          </Show>
-        </div>
-      )}
+                  </Button>
+                }
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={props.index === 0 || locked()}
+                  onClick={() => props.onIndex(props.index - 1)}
+                >
+                  <ChevronLeft aria-hidden="true" />
+                  {props.labels.back}
+                </Button>
+                <fieldset class="quiz-dots" aria-label={props.labels.progress}>
+                  <For each={quizAccessor().questions}>
+                    {(_, dotIndex) => (
+                      <button
+                        type="button"
+                        class="quiz-dot"
+                        disabled={locked()}
+                        aria-label={props.labels.jumpTo(dotIndex() + 1)}
+                        aria-current={dotIndex() === props.index ? "step" : undefined}
+                        data-answered={
+                          props.picks[dotIndex()] !== null && props.picks[dotIndex()] !== undefined ? "true" : undefined
+                        }
+                        onClick={() => props.onIndex(dotIndex())}
+                      />
+                    )}
+                  </For>
+                </fieldset>
+                <Show
+                  when={last()}
+                  fallback={
+                    <Button
+                      variant="default"
+                      size="sm"
+                      disabled={locked()}
+                      onClick={() => props.onIndex(props.index + 1)}
+                    >
+                      {props.labels.next}
+                      <ChevronRight aria-hidden="true" />
+                    </Button>
+                  }
+                >
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={answered() === 0 || locked()}
+                    loading={locked()}
+                    loadingLabel={props.labels.grading}
+                    onClick={() => props.onSubmit()}
+                  >
+                    {props.labels.submit}
+                  </Button>
+                </Show>
+              </Show>
+            </footer>
+            <Show when={!reviewing() && last() && answered() > 0 && answered() < total()}>
+              <p class="quiz-card-hint">{props.labels.unanswered}</p>
+            </Show>
+          </div>
+        );
+      }}
     </Show>
+  );
+}
+
+/** The end of the quiz: the score, the wrong answers with the right one, and the Teacher's weak topics. */
+function Summary(props: {
+  quiz: SchoolQuizData;
+  picks: Array<number | null>;
+  result: QuizResultView;
+  labels: QuizCardLabels;
+  onOpenLink?: ((href: string) => void) | undefined;
+}) {
+  const wrong = () =>
+    props.result.graded.items.flatMap((item) => {
+      const question = props.quiz.questions[item.index];
+      return item.right || !question
+        ? []
+        : [{ number: item.index + 1, question, picked: props.picks[item.index] ?? null }];
+    });
+  const tone = (): "good" | "fair" | "poor" =>
+    props.result.graded.percent >= 70 ? "good" : props.result.graded.percent >= 40 ? "fair" : "poor";
+  const weakPoints = () => props.result.report?.weakPoints ?? [];
+  const resources = () => props.result.report?.resources;
+
+  return (
+    <div class="quiz-summary">
+      <div class="quiz-score" data-tone={tone()}>
+        <div class="quiz-score-value">
+          {props.labels.score(props.result.graded.correct, props.result.graded.total, props.result.graded.percent)}
+        </div>
+        <Show when={props.result.report?.summary}>
+          <p class="quiz-score-note">{props.result.report?.summary}</p>
+        </Show>
+      </div>
+
+      <Show when={props.result.analysisError}>
+        <p class="quiz-card-error" role="alert">
+          {props.labels.analysisError}
+        </p>
+      </Show>
+
+      <section class="quiz-section">
+        <h4 class="quiz-section-title">
+          <X aria-hidden="true" />
+          {props.labels.wrongTitle}
+        </h4>
+        <Show when={wrong().length > 0} fallback={<p class="quiz-section-empty">{props.labels.allCorrect}</p>}>
+          <For each={wrong()}>
+            {(entry) => (
+              <article class="quiz-wrong">
+                <p class="quiz-wrong-question">
+                  {entry.number}. {entry.question.q}
+                </p>
+                <Show when={entry.question.diagram}>
+                  {(diagram) => (
+                    <QuizDiagram diagram={diagram()} label={props.labels.diagram(diagram().xLabel, diagram().yLabel)} />
+                  )}
+                </Show>
+                <p class="quiz-wrong-line" data-kind="yours">
+                  <span class="quiz-wrong-icon">
+                    {entry.picked === null ? <Minus aria-hidden="true" /> : <X aria-hidden="true" />}
+                  </span>
+                  <span class="quiz-wrong-label">{props.labels.yourAnswer}:</span>{" "}
+                  {entry.picked === null
+                    ? props.labels.skipped
+                    : `${LETTERS[entry.picked] ?? ""}. ${entry.question.options[entry.picked] ?? ""}`}
+                </p>
+                <p class="quiz-wrong-line" data-kind="right">
+                  <span class="quiz-wrong-icon">
+                    <Check aria-hidden="true" />
+                  </span>
+                  <span class="quiz-wrong-label">{props.labels.correctAnswer}:</span>{" "}
+                  {LETTERS[entry.question.answer] ?? ""}. {entry.question.options[entry.question.answer]}
+                </p>
+                <p class="quiz-wrong-explanation">{entry.question.explanation}</p>
+              </article>
+            )}
+          </For>
+        </Show>
+      </section>
+
+      <section class="quiz-section">
+        <h4 class="quiz-section-title">
+          <Brain aria-hidden="true" />
+          {props.labels.focusTitle}
+        </h4>
+        <For each={weakPoints()}>
+          {(weak) => (
+            <article class="quiz-weak">
+              <strong>{weak.concept}</strong>
+              <p>{weak.why}</p>
+              <p>
+                <em>{props.labels.fix}:</em> {weak.tip}
+              </p>
+            </article>
+          )}
+        </For>
+        <Show
+          when={props.result.graded.weakConcepts.length > 0}
+          fallback={
+            <Show when={weakPoints().length === 0}>
+              <p class="quiz-section-empty">{props.labels.focusNone}</p>
+            </Show>
+          }
+        >
+          <ul class="quiz-focus-list">
+            <For each={props.result.graded.weakConcepts}>
+              {(item) => (
+                <li>
+                  {item.concept} — {props.labels.missed(item.missed, item.of)}
+                </li>
+              )}
+            </For>
+          </ul>
+        </Show>
+        <Show when={props.result.savedTopics.length > 0}>
+          <div class="quiz-saved">
+            <strong>{props.labels.savedTitle}</strong>
+            <div class="quiz-saved-chips">
+              <For each={props.result.savedTopics}>{(topic) => <span class="quiz-chip">{topic}</span>}</For>
+            </div>
+            <p>{props.labels.savedNote}</p>
+          </div>
+        </Show>
+      </section>
+
+      <Show when={(props.result.report?.strengths.length ?? 0) > 0}>
+        <p class="quiz-strengths">
+          <Zap aria-hidden="true" />
+          <strong>{props.labels.strengths}:</strong> {props.result.report?.strengths.join(" · ")}
+        </p>
+      </Show>
+
+      <Show when={hasResources(props.result.report)}>
+        <section class="quiz-section">
+          <h4 class="quiz-section-title">
+            <BookOpen aria-hidden="true" />
+            {props.labels.learnMore}
+          </h4>
+          <div class="quiz-resources">
+            <For each={resources()?.youtube ?? []}>
+              {(video) => (
+                <ResourceButton href={video.url} onOpen={props.onOpenLink}>
+                  <strong>{video.channel}</strong> {props.labels.onYoutube}
+                  {video.why ? ` — ${video.why}` : ""}
+                </ResourceButton>
+              )}
+            </For>
+            <For each={resources()?.books ?? []}>
+              {(book) => (
+                <ResourceButton href={book.url} onOpen={props.onOpenLink}>
+                  <strong>{book.title}</strong>
+                  {book.author ? ` — ${book.author}` : ""}
+                  {book.why ? ` · ${book.why}` : ""}
+                </ResourceButton>
+              )}
+            </For>
+            <For each={resources()?.other ?? []}>
+              {(other) => (
+                <ResourceButton href={other.url} onOpen={props.onOpenLink}>
+                  <Link aria-hidden="true" /> <strong>{other.name}</strong>
+                  {other.why ? ` — ${other.why}` : ""}
+                </ResourceButton>
+              )}
+            </For>
+          </div>
+          <p class="quiz-section-empty">{props.labels.linksNote}</p>
+        </section>
+      </Show>
+    </div>
   );
 }
 
@@ -441,47 +443,12 @@ function hasResources(report: SchoolQuizReport | null | undefined): boolean {
   return report.resources.youtube.length > 0 || report.resources.books.length > 0 || report.resources.other.length > 0;
 }
 
-/** What the student should practise next: the concepts they missed, most frequent first, and the teacher's advice. */
-function FocusSection(props: {
-  focus: SchoolQuizGraded["weakConcepts"];
-  title: string;
-  none: string;
-  missed: (missed: number, of: number) => string;
-}) {
-  return (
-    <div style={{ display: "flex", "flex-direction": "column", gap: "6px" }}>
-      <strong>{props.title}</strong>
-      <Show when={props.focus.length > 0} fallback={<p style={{ margin: "0", "font-size": "13px" }}>{props.none}</p>}>
-        <For each={props.focus}>
-          {(item) => (
-            <p style={{ margin: "0", "font-size": "13px" }}>
-              {item.concept} — {props.missed(item.missed, item.of)}
-            </p>
-          )}
-        </For>
-      </Show>
-    </div>
-  );
-}
-
 /** A search link. Clicking it opens the browser, as IsCool's LinkButton does. */
-function ResourceButton(props: { href: string; onOpen?: (href: string) => void; children: JSX.Element }) {
+function ResourceButton(props: { href: string; onOpen?: ((href: string) => void) | undefined; children: JSX.Element }) {
   return (
-    <button
-      type="button"
-      onClick={() => props.onOpen?.(props.href)}
-      style={{
-        border: "none",
-        cursor: "pointer",
-        "text-align": "left",
-        padding: "6px 10px",
-        "border-radius": "10px",
-        background: "var(--jargon-bg-control)",
-        color: "var(--jargon-text-primary)",
-        "font-size": "13px",
-      }}
-    >
-      {props.children} <span aria-hidden="true">↗</span>
+    <button type="button" class="quiz-resource" onClick={() => props.onOpen?.(props.href)}>
+      <span>{props.children}</span>
+      <ExternalLink aria-hidden="true" />
     </button>
   );
 }

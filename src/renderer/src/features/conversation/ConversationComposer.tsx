@@ -63,7 +63,9 @@ function schoolCommandsFor(agentId: string | undefined): readonly ComposerComman
       ? ["@memory-notes", "@teach-me", "@quiz"]
       : persona === "librarian"
         ? ["@memory-notes", "@convert", "@compress"]
-        : ["@memory-notes"];
+        : persona === "planner"
+          ? ["@memory-notes", "@plan"]
+          : ["@memory-notes"];
   return SCHOOL_COMMAND_SUGGESTIONS.filter((item) => allowed.includes(item.command));
 }
 

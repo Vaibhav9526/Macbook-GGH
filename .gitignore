@@ -67,14 +67,12 @@ keys
 
 # Persistent local development identity and migration recovery.
 .jargon/
-/*.md
-docs/**/*.md
+*.md
+!/README.md
 !marketplace/**/*.md
 !resources/**/*.md
 !.agents/**/*.md
 !.claude/**/*.md
 !.codex/**/*.md
 !.github/**/*.md
-
-*.md
-!/README.md
+dist-*/

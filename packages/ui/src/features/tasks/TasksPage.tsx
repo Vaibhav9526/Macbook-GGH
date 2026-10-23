@@ -101,7 +101,7 @@ const AGENT_SWAP: SwapMotion = {
  * The agent of a task, as a menu with the agent's face. A task has one agent, so the menu marks only
  * the chosen agent, as the routine trigger menu does.
  */
-function TaskAgentSelect(props: {
+export function TaskAgentSelect(props: {
   agents: AgentProfile[];
   agentId: string;
   /** The task title, when the select changes the agent of a task that is already sent. */
@@ -161,7 +161,29 @@ function TaskAgentSelect(props: {
  * The composer of the Tasks page: the conversation composer, and the agent selector in its toolbar.
  * Enter starts the task and Shift+Enter adds a line. The microphone dictates the task, as in a chat.
  */
-function TasksComposer(props: TasksPageProps) {
+/** What the composer needs. The Tasks page and the Planning page share it. */
+export type TasksComposerProps = Pick<
+  TasksPageProps,
+  | "agents"
+  | "agentId"
+  | "onAgentChange"
+  | "draft"
+  | "onDraftChange"
+  | "focusRequest"
+  | "startError"
+  | "onDismissStartError"
+  | "onStart"
+  | "voice"
+> & {
+  /** The words in the empty composer. The Tasks page asks what to do. */
+  placeholder?: string | undefined;
+  /** The label of the send button. */
+  sendLabel?: string | undefined;
+  /** The title of the notice above the composer, when a start fails. */
+  errorTitle?: string | undefined;
+};
+
+export function TasksComposer(props: TasksComposerProps) {
   const { t } = useText();
   const phase = (): VoicePhase => props.voice?.phase ?? "idle";
   const busy = () => phase() === "requesting" || phase() === "preparing" || phase() === "transcribing";
@@ -174,7 +196,9 @@ function TasksComposer(props: TasksPageProps) {
       type="submit"
       variant="ghost"
       class="voice-button"
-      aria-label={phase() === "recording" ? t("composer.send.voice") : t("conversation.tasks.page.start")}
+      aria-label={
+        phase() === "recording" ? t("composer.send.voice") : (props.sendLabel ?? t("conversation.tasks.page.start"))
+      }
       disabled={!canStart()}
     >
       <ArrowUp aria-hidden="true" />
@@ -186,7 +210,7 @@ function TasksComposer(props: TasksPageProps) {
         {(body) => (
           <ComposerNotice
             tone="danger"
-            title={t("conversation.tasks.error.start")}
+            title={props.errorTitle ?? t("conversation.tasks.error.start")}
             body={body()}
             onDismiss={props.onDismissStartError}
           />
@@ -204,8 +228,8 @@ function TasksComposer(props: TasksPageProps) {
             agentId={undefined}
             agents={props.agents}
             value={props.draft}
-            placeholder={t("conversation.tasks.page.ask")}
-            ariaLabel={t("conversation.tasks.page.ask")}
+            placeholder={props.placeholder ?? t("conversation.tasks.page.ask")}
+            ariaLabel={props.placeholder ?? t("conversation.tasks.page.ask")}
             disabled={phase() === "transcribing"}
             focusRequest={props.focusRequest}
             dictation={{ text: props.voice?.liveText ?? "", final: phase() === "transcribing" }}

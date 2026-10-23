@@ -7,6 +7,38 @@
   color: var(--jargon-text-primary);
 }
 
+/* The Planning page: the composer across the top, then the syllabus beside the calendar. */
+.planning-page .tasks-page-scroll {
+  container-type: inline-size;
+}
+
+.planning-page .tasks-page-column {
+  width: 100%;
+  max-width: none;
+}
+
+.planning-page-grid {
+  display: grid;
+  grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--jargon-space-4);
+  padding-top: var(--jargon-space-4);
+}
+
+.planning-page-left,
+.planning-page-right {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--jargon-space-3);
+}
+
+@container (max-width: 52rem) {
+  .planning-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* One centered column. */
 .tasks-page-scroll {
   min-width: 0;

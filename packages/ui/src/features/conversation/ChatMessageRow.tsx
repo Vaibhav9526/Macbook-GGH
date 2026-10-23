@@ -88,6 +88,9 @@ export interface ChatMessageRowProps {
  * that from happening a third time. It reads no context and no store: what a caller knows about a
  * conversation arrives as a prop.
  */
+/** The start of the first message that `createAgentInitialMessage` sends to give an agent its role. */
+const ROLE_MESSAGE_PREFIX = "Your ongoing role is:";
+
 export function ChatMessageRow(props: ChatMessageRowProps): JSX.Element {
   const { t } = useText();
   const own = () => props.author.kind === "you";
@@ -104,7 +107,18 @@ export function ChatMessageRow(props: ChatMessageRowProps): JSX.Element {
     if (own() || currentSeed === undefined) return undefined;
     return `--message-author-color: ${avatarHeadColor(currentSeed, props.author.agent?.avatarHue ?? null)}`;
   };
+  // The standing role a new agent is created with is sent as its first message. It is not a chat turn:
+  // a small line stands in for it, and the full text stays in the agent's settings.
+  const roleLine = () => own() && props.message.body.startsWith(ROLE_MESSAGE_PREFIX);
   return (
+    <Show
+      when={!roleLine()}
+      fallback={
+        <div class="message-role-line" role="note" data-chat-search-message={props["data-chat-search-message"]}>
+          {t("chat.roleSet")}
+        </div>
+      }
+    >
     <Message
       role="article"
       align={person() ? "end" : "start"}
@@ -254,5 +268,6 @@ export function ChatMessageRow(props: ChatMessageRowProps): JSX.Element {
         </Show>
       </MessageContent>
     </Message>
+    </Show>
   );
 }

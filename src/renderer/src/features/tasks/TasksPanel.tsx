@@ -65,7 +65,7 @@ export function TasksPanel(props: TasksPanelProps) {
  * The voice of the Tasks composer, with the voice store of the chat composer. The transcript goes into
  * the draft; a send while it records starts the task with the transcript.
  */
-function createTasksVoice(controls: TasksVoiceControls): TasksVoiceAdapter {
+export function createTasksVoice(controls: TasksVoiceControls): TasksVoiceAdapter {
   const [phase, setPhase] = createSignal<ReturnType<VoiceStoreDeps["voicePhase"]>>("idle");
   const [levels, setLevels] = createSignal<number[]>(Array.from({ length: VOICE_LEVEL_COUNT }, () => 0));
   const [elapsedSeconds, setElapsedSeconds] = createSignal(0);

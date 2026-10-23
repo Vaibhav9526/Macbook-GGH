@@ -37,6 +37,7 @@
 @import "@jargon/ui/features/usage/agent-usage-report.css";
 @import "./features/usage/usage.css";
 @import "./features/schedule/schedule.css";
+@import "./features/school/planner.css";
 @import "@jargon/ui/features/tasks/tasks.css";
 @import "@jargon/ui/styles/chart.css";
 @import "@jargon/ui/features/files/files.css";
@@ -45,6 +46,7 @@
 @import "@jargon/ui/features/settings/settings-modal.css";
 @import "./features/settings/settings-modal.css";
 @import "@jargon/ui/features/window/page-rail.css";
+@import "@jargon/ui/features/floor/floor.css";
 @import "./features/window/window.css";
 @import "@jargon/ui/features/settings/opencode-key-dialog.css";
 @import "./features/settings/settings-mobile-connect.css";

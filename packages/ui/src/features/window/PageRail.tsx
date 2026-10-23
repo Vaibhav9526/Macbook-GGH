@@ -8,6 +8,7 @@ import {
   MotionTooltip,
   Settings,
   Store,
+  Target,
   Workflow,
 } from "@jargon/ui";
 import { AccountUsageDetails } from "@jargon/ui/features/account/AccountUsageDetails";
@@ -125,7 +126,15 @@ function UsageRings(props: { row: AccountUsageProviderRow; onOpen: (button: HTML
 }
 
 /** The rail pages. Agents and Routines show the same page with a different sidebar list. */
-export type PageRailPage = "agents" | "routines" | "tasks" | "schedule" | "usage" | "marketplace" | "settings";
+export type PageRailPage =
+  | "agents"
+  | "routines"
+  | "tasks"
+  | "planning"
+  | "schedule"
+  | "usage"
+  | "marketplace"
+  | "settings";
 
 export interface PageRailProps {
   hidden: boolean;
@@ -138,6 +147,8 @@ export interface PageRailProps {
   onRoutines?: (() => void) | undefined;
   /** Absent where the server keeps no tasks. */
   onTasks?: ((button: HTMLElement) => void) | undefined;
+  /** Absent outside the School, where the Planner lives. */
+  onPlanning?: ((button: HTMLElement) => void) | undefined;
   /** Absent where there is no schedule page. */
   onSchedule?: ((button: HTMLElement) => void) | undefined;
   onUsage: (button: HTMLElement) => void;
@@ -149,7 +160,7 @@ export interface PageRailProps {
   /** Extra rail items (the floor button), between Marketplace and Help. */
   extra?: JSX.Element;
   /** The Help menu, between Marketplace and Settings. */
-  help: JSX.Element;
+  help?: JSX.Element;
 }
 
 /**
@@ -183,6 +194,17 @@ export function PageRail(props: PageRailProps) {
               onClick={(button) => onTasks()(button)}
             >
               <ListChecks aria-hidden="true" />
+            </RailButton>
+          )}
+        </Show>
+        <Show when={props.onPlanning}>
+          {(onPlanning) => (
+            <RailButton
+              label={t("app.rail.planning")}
+              current={props.current === "planning"}
+              onClick={(button) => onPlanning()(button)}
+            >
+              <Target aria-hidden="true" />
             </RailButton>
           )}
         </Show>

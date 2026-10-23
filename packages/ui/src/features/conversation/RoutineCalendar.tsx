@@ -29,7 +29,8 @@ import {
   SlidingTabs,
   X,
 } from "@jargon/ui";
-import { createMemo, createStore, For, Match, onSettled, Show, Switch, untrack } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createStore, For, Match, onSettled, Show, Switch, untrack } from "solid-js";
 import type { AgentProfile } from "../../data";
 import { useText } from "../../text";
 import { AgentAvatar } from "../agents/AgentAvatar";
@@ -39,7 +40,8 @@ import { routineScheduleSummary } from "./routine-schedule-ui";
  * A run is `active` or `paused` before it happens, and `completed` or `failed` after it. A paused
  * routine still shows its runs, so the person sees what resuming it brings back.
  */
-export type RoutineCalendarStatus = "active" | "paused" | "failed" | "completed";
+/** `proposed` is a run that a person has not accepted yet, such as a timetable the Planner suggests. */
+export type RoutineCalendarStatus = "active" | "paused" | "failed" | "completed" | "proposed";
 export type RoutineCalendarView = "month" | "week" | "day";
 export type RoutineCalendarAgent = Pick<AgentProfile, "id" | "name" | "avatarSeed" | "avatarHue" | "avatarUrl">;
 
@@ -68,6 +70,11 @@ export interface RoutineCalendarProps {
   state?: "ready" | "loading" | "error";
   errorText?: string;
   initialView?: RoutineCalendarView;
+  /**
+   * Where the calendar opens, and where it moves when this changes, for example to the days of a timetable that
+   * the Planner proposes. The person moves it from there.
+   */
+  focus?: { day: CalendarDay; view: RoutineCalendarView } | undefined;
   /** 0 is Sunday, 1 is Monday. */
   weekStartsOn?: number;
   /** The first and last day the calendar shows, after each move, so the host can load their runs. */
@@ -80,6 +87,8 @@ export interface RoutineCalendarProps {
   onBack?: () => void;
   /** The host whose routines show, after the title. */
   hostName?: string;
+  /** Shown between the heading and the days, for example a timetable that waits for a decision. */
+  banner?: JSX.Element;
 }
 
 interface CalendarEntry {
@@ -97,6 +106,7 @@ const STATUS_LABEL = {
   paused: "routine.settings.paused",
   failed: "routine.runStatus.failed",
   completed: "routine.calendar.completed",
+  proposed: "routine.calendar.proposed",
 } as const satisfies Record<RoutineCalendarStatus, AppTextKey>;
 
 const PREVIOUS_LABEL = {
@@ -118,8 +128,8 @@ export function RoutineCalendar(props: RoutineCalendarProps) {
   // The props only seed the view: after that, the person moves it.
   const [state, setState] = createStore(
     untrack(() => ({
-      view: props.initialView ?? "week",
-      anchor: calendarDayOf(props.now, props.timeZone),
+      view: props.focus?.view ?? props.initialView ?? "week",
+      anchor: props.focus?.day ?? calendarDayOf(props.now, props.timeZone),
     })),
   );
 
@@ -213,6 +223,15 @@ export function RoutineCalendar(props: RoutineCalendarProps) {
     moveTo(anchor, view);
     heading?.focus();
   };
+  // A new focus moves the calendar. The first run is the opening position, which the state holds already.
+  createEffect(
+    () => props.focus,
+    (focus, previous) => {
+      if (!focus || previous === undefined) return;
+      if (focus.day === previous?.day && focus.view === previous?.view) return;
+      moveTo(focus.day, focus.view);
+    },
+  );
   const step = (direction: -1 | 1) =>
     moveTo(
       state.view === "month"
@@ -326,6 +345,7 @@ export function RoutineCalendar(props: RoutineCalendarProps) {
             <p class="routine-planner-clock-change">{t("routine.calendar.clockChange", { day: longDay(day()) })}</p>
           )}
         </Show>
+        {props.banner}
       </header>
 
       <Switch>

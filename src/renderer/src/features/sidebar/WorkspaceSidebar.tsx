@@ -45,7 +45,7 @@ export function WorkspaceSidebar(props: { peopleEnabled: boolean }) {
   const layout = useLayout();
   const windowPage = useWindowPage();
   /** The Tasks page shows beside the list. No row is open, so a click on a row opens its chat. */
-  const tasksOpen = () => windowPage.page() === "tasks";
+  const tasksOpen = () => windowPage.page() === "tasks" || windowPage.page() === "planning";
   const platform = usePlatform();
   const channels = useChannels();
   const { activeServer, activeServerSupportsCapability } = useServers();

@@ -1,0 +1,89 @@
+import AgentSettingsPanel from "@jargon/ui/features/conversation/AgentSettingsPanel";
+import { fn } from "storybook/test";
+import type { Meta, StoryObj } from "storybook-solidjs-vite";
+import { STORY_AGENT, STORY_AGENT_STATUS, STORY_MODELS, storyRuntimeSettings } from "./fixtures";
+
+const meta = {
+  title: "Settings/Shared Agent Form",
+  component: AgentSettingsPanel,
+  args: {
+    agent: STORY_AGENT,
+    runtimeSettings: storyRuntimeSettings(STORY_AGENT),
+    agentStatus: STORY_AGENT_STATUS,
+    modelOptions: STORY_MODELS,
+    working: false,
+    autoApprove: true,
+    onUpdatePermissions: fn(async () => undefined),
+    busyMessageModeEditable: true,
+    newChatEditable: true,
+    quickAcknowledgementEditable: true,
+    defaultBusyMessageMode: "queue",
+    width: 296,
+    maxWidth: () => 640,
+    onClose: fn(),
+    onStartNewChat: fn(async () => {}),
+    onResize: fn(),
+    onResizeEnd: fn(),
+    onUpdateAgent: fn(async () => undefined),
+    onUpdateRuntimeSettings: fn(async () => true),
+    onSetAgentAvatar: fn(async () => undefined),
+  },
+  render: (args) => (
+    <main class="agent-memories-story-stage">
+      <AgentSettingsPanel {...args} />
+    </main>
+  ),
+  parameters: { layout: "fullscreen", a11y: { test: "error" } },
+} satisfies Meta<typeof AgentSettingsPanel>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Default: Story = {};
+export const Working: Story = { args: { working: true } };
+export const WorkspaceOnly: Story = { args: { agent: { ...STORY_AGENT, access: "workspace" } } };
+/** Full reach, but the agent asks before it acts. */
+export const AskFirst: Story = { args: { agent: { ...STORY_AGENT, access: "full" }, autoApprove: false } };
+/** The agent steers messages sent while it works, whatever the app default says. */
+export const SteersWhileWorking: Story = { args: { agent: { ...STORY_AGENT, busyMessageMode: "steer" } } };
+/** Steer, from the app default, on a provider that cannot steer: the note says the messages queue. */
+export const SteerUnsupportedProvider: Story = {
+  args: {
+    defaultBusyMessageMode: "steer",
+    runtimeSettings: { provider: "opencode", model: STORY_AGENT.model, reasoningEffort: STORY_AGENT.reasoningEffort },
+  },
+};
+/** An agent on a remote host: the setting belongs to that host, so the row is hidden. */
+export const RemoteAgent: Story = {
+  args: {
+    onUpdatePermissions: undefined,
+    busyMessageModeEditable: false,
+    newChatEditable: false,
+    quickAcknowledgementEditable: false,
+  },
+};
+/** An OpenCode model with no reasoning setting: OpenCode decides, and the row says so. */
+export const ReasoningSetByProvider: Story = {
+  args: {
+    runtimeSettings: { provider: "opencode", model: "opencode/big-pickle", reasoningEffort: "medium" },
+    modelOptions: [
+      ...STORY_MODELS,
+      {
+        provider: "opencode",
+        id: "opencode/big-pickle",
+        name: "Big Pickle",
+        description: "Free OpenCode model.",
+        defaultReasoningEffort: "medium",
+        supportedReasoningEfforts: ["medium"],
+        reasoningEffortConfigurable: false,
+      },
+    ],
+  },
+};
+export const SaveFailure: Story = {
+  args: {
+    onUpdateAgent: fn(async () => {
+      throw new Error("Could not save agent settings. Try again.");
+    }),
+  },
+};

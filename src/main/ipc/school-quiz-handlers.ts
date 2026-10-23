@@ -25,6 +25,8 @@ const MAX_DOUBT = 1500;
 const MAX_CONTEXT = 8;
 const MAX_CONTEXT_TEXT = 800;
 const QUIZ_QUESTIONS = 5;
+const MAX_WEAK_TOPICS = 8;
+const MAX_WEAK_TOPIC_TEXT = 80;
 
 export interface SchoolQuizIpcDependencies {
   translate: AppTranslate;
@@ -49,7 +51,10 @@ function parseStart(value: unknown): SchoolQuizStartInput {
       context.push({ role: item.role, text: item.text.slice(0, MAX_CONTEXT_TEXT) });
     }
   }
-  return { doubt, context };
+  const weakTopics = (Array.isArray(value.weakTopics) ? value.weakTopics : [])
+    .flatMap((topic) => (typeof topic === "string" && topic.trim() ? [topic.trim().slice(0, MAX_WEAK_TOPIC_TEXT)] : []))
+    .slice(0, MAX_WEAK_TOPICS);
+  return { doubt, context, weakTopics };
 }
 
 /**
@@ -73,11 +78,13 @@ export function schoolQuizIpcHandlers({ translate }: SchoolQuizIpcDependencies):
       start: payloadHandler(parseStart, async (input): Promise<SchoolQuizStartResult> => {
         // With nothing typed after @quiz, the student's last question is the doubt.
         const lastUser = [...input.context].reverse().find((turn) => turn.role === "user")?.text ?? "";
-        const doubt = input.doubt || lastUser;
+        const weakTopics = input.weakTopics ?? [];
+        // With no doubt at all, the quiz revises the topics the student got wrong before.
+        const doubt = input.doubt || lastUser || (weakTopics.length ? weakTopics.join("; ") : "");
         if (!doubt) return { ok: false, error: translate("app.school.quiz.needDoubt") };
         for (let attempt = 0; attempt < 2; attempt++) {
           // One retry: models occasionally break the format.
-          const response = await runClaudeOnce(buildQuizPrompt(doubt, input.context, QUIZ_QUESTIONS));
+          const response = await runClaudeOnce(buildQuizPrompt(doubt, input.context, QUIZ_QUESTIONS, weakTopics));
           if (!response.ok) return { ok: false, error: response.error };
           const parsed = parseQuiz(response.text);
           if (parsed.ok) return { ok: true, quiz: parsed.quiz };

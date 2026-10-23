@@ -1,0 +1,7 @@
+sf=1.25
+E corners: TL=62,62,62 BL=41,41,41 BR=27,29,37 inner=41,41,41
+  -> rounded where !red && inner red: TL square/other
+E caption corner (WCO button zone): 27,29,37 -> overlay buttons DRAWN
+focus steal: focus failed: Object has been destroyed
+E top strip focused : f@2=62,62,62 f@8=62,62,62 f@16=62,62,62 f@28=62,62,62
+E top strip blurred : b@2=43,43,43 b@8=43,43,43 b@16=43,43,43 b@28=43,43,43

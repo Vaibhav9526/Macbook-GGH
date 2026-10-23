@@ -164,7 +164,6 @@ import {
 import { licenseContactUs, trackLicenseEvent } from "../settings/license-analytics";
 import { createCommunityCardVisibility } from "../sidebar/community-card";
 import { isReaderAuthor } from "../team/reader-identity";
-import { RailHelpMenu } from "../window/RailHelpMenu";
 import { ServerSettingsPageTitle, SettingsPageFrame } from "../window/SettingsPageFrame";
 import type { SettingsKind, WindowPage } from "../window/window-page-context";
 import { WebAgentSettings } from "./WebAgentSettings";
@@ -1408,13 +1407,6 @@ function WebWorkspaceFrame(props: WebWorkspaceProps) {
             }}
             onMarketplace={workspace.state.status === "online" ? () => setMarketplaceOpen(true) : undefined}
             onSettings={openAccountSettings}
-            help={
-              <RailHelpMenu
-                version={null}
-                onOpenWhatsNew={() => void openWebDestination("changelog")}
-                onOpenLink={(destination) => void openWebDestination(destination)}
-              />
-            }
           />
           <WorkspaceFrame
             class="web-app-frame"

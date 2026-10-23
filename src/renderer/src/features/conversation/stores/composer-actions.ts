@@ -11,6 +11,8 @@ import { isQueueEditRejected, TEAM_QUEUE_EDIT_CAPABILITY } from "@jargon/contrac
 import { expandComposerMentions } from "@jargon/ui/features/conversation/ComposerEditor";
 import { currentText } from "@jargon/ui/text";
 import { playActionSound } from "../../../action-sounds";
+import { looksLikePlanRequest } from "../../school/planner-schedule";
+import { plannerExam, proposeFromText, requestPlannerCalendar, setPlannerNotice } from "../../school/planner-state";
 import { startSchoolQuiz } from "../../school/school-quiz-state";
 import { schoolActive, schoolPersonaOf, TEACH_ME_URL, teachMeTopic, wantsTeachMe } from "../../school/school-workspace";
 import { claimDictatedSend } from "../../speech/speech-replies";
@@ -560,6 +562,27 @@ export function createComposerActions(deps: ComposerActionsDeps) {
       deps.clearSubmittedDraft(target, submittedSnapshot ?? draft);
       void startSchoolQuiz(agentId, { doubt: quizCommand.doubt, context: [] });
       return true;
+    }
+    // School: in the Planner chat, @plan and a typed request such as "cover these topics in a week" build a
+    // timetable. The message is not sent to the agent: the panel and the calendar show the answer.
+    if (schoolActive() && schoolPersonaOf(agentId) === "planner" && plannerExam()) {
+      const planText =
+        trimmedText.toLowerCase().startsWith("@plan") && !/[a-z0-9_]/i.test(trimmedText.charAt(5))
+          ? trimmedText.slice(5).trim()
+          : looksLikePlanRequest(trimmedText)
+            ? trimmedText
+            : null;
+      if (planText !== null) {
+        deps.setComposerError(null, target);
+        deps.clearSubmittedDraft(target, submittedSnapshot ?? draft);
+        if (proposeFromText(planText)) {
+          setPlannerNotice(null);
+          requestPlannerCalendar();
+        } else {
+          setPlannerNotice({ kind: "error", text: t("app.planner.needTopics") });
+        }
+        return true;
+      }
     }
     // School: @teach-me opens the hosted classroom in the embedded browser. Text after the command is typed
     // into that page and sent there. The message is not sent to the agent.

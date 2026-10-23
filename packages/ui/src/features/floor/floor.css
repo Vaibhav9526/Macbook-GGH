@@ -1,0 +1,266 @@
+/* The floor screen: the map on the left, the tapped agent's panel on the right, every agent as a card
+   in the strip below. The chat in the panel is the app's own conversation. While the Chat tab is open,
+   the host sets data-floor-chat on body and --floor-chat-* to the rectangle of the chat slot, and the
+   conversation panel is drawn over that rectangle. */
+
+.floor-overlay-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+}
+
+.floor-panel {
+  display: flex;
+  width: clamp(340px, 30%, 460px);
+  min-height: 0;
+  flex: 0 0 auto;
+  flex-direction: column;
+  border-left: 1px solid var(--jargon-border);
+  background: var(--jargon-bg-canvas);
+}
+
+.floor-panel-card {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+}
+
+.floor-panel-avatar {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+}
+
+.floor-panel-id {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.floor-panel-name {
+  overflow: hidden;
+  margin: 0;
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-xl);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-panel-role {
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+}
+
+.floor-panel-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--jargon-space-3);
+  border-bottom: 1px solid var(--jargon-border);
+}
+
+.floor-panel-tab {
+  border-radius: 0;
+  color: var(--jargon-text-secondary);
+}
+
+.floor-panel-tab[data-active="true"] {
+  color: var(--jargon-text-primary);
+  box-shadow: inset 0 -2px 0 var(--jargon-text-primary);
+}
+
+.floor-panel-spacer {
+  flex: 1;
+}
+
+.floor-panel-chat-slot {
+  min-height: 0;
+  flex: 1;
+}
+
+.floor-panel-terminal {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+  background: var(--jargon-bg-surface);
+  color: var(--jargon-text-secondary);
+  font-family: var(--jargon-font-mono);
+  font-size: var(--jargon-text-sm);
+}
+
+.floor-panel-terminal p {
+  margin: 0 0 var(--jargon-space-2);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.floor-panel-terminal-prompt {
+  margin-right: var(--jargon-space-2);
+  color: var(--jargon-text-primary);
+  font-weight: 650;
+}
+
+.floor-panel-terminal-prompt::after {
+  content: " >";
+}
+
+body[data-floor-chat="true"] .conversation-panel:not(.window-page, .first-agent-setup-panel) {
+  position: fixed;
+  z-index: 41;
+  top: var(--floor-chat-y);
+  left: var(--floor-chat-x);
+  width: var(--floor-chat-w);
+  height: var(--floor-chat-h);
+  min-height: 0;
+  grid-column: auto;
+  grid-row: auto;
+}
+
+body[data-floor-chat="true"] .conversation-panel:not(.window-page) .conversation-header {
+  display: none;
+}
+
+.floor-strip {
+  display: flex;
+  height: 132px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+  border-top: 1px solid var(--jargon-border);
+  background: var(--jargon-bg-sidebar);
+}
+
+.floor-strip-cards {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  overflow-x: auto;
+}
+
+.floor-strip-slot {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.floor-strip-card {
+  display: flex;
+  width: 220px;
+  height: 96px;
+  align-items: center;
+  gap: var(--jargon-space-3);
+  padding: var(--jargon-space-3);
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-surface);
+  color: var(--jargon-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.floor-strip-card:hover {
+  background: var(--jargon-hover);
+}
+
+.floor-strip-card[data-selected="true"] {
+  border-color: var(--jargon-border-strong);
+  box-shadow: 0 0 0 1px var(--jargon-border-strong);
+}
+
+.floor-strip-avatar {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+}
+
+.floor-strip-text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.floor-strip-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-strip-line {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--jargon-text-secondary);
+  font-size: var(--jargon-text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.floor-strip-dismiss {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: none;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--jargon-radius-md);
+  background: transparent;
+  color: var(--jargon-text-dim);
+  cursor: pointer;
+}
+
+.floor-strip-dismiss svg {
+  width: 14px;
+  height: 14px;
+}
+
+.floor-strip-slot:hover .floor-strip-dismiss,
+.floor-strip-dismiss:focus-visible {
+  display: flex;
+}
+
+.floor-strip-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--jargon-space-2);
+}
+
+.floor-strip-restore-count {
+  margin-left: var(--jargon-space-1);
+  color: var(--jargon-text-dim);
+}
+
+.message-role-line {
+  padding: var(--jargon-space-2) 0;
+  color: var(--jargon-text-dim);
+  font-size: var(--jargon-text-sm);
+  text-align: center;
+}
+
+/* The panel is narrow: long words and code wrap inside it, and the composer keeps its send button. */
+body[data-floor-chat="true"] .conversation-panel:not(.window-page) {
+  min-width: 0;
+  overflow: hidden;
+}
+
+body[data-floor-chat="true"] .conversation-panel:not(.window-page) :is(.message-bubble, .composer) {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

@@ -3,16 +3,23 @@ import type {
   RoutineCalendarInput,
   RoutineCalendarRunStatus,
 } from "@jargon/contracts/ipc";
+import { calendarDayOf } from "@jargon/team-client/routine-calendar-dates";
 import {
   RoutineCalendar,
   type RoutineCalendarAgent,
   type RoutineCalendarRoutine,
+  type RoutineCalendarRun,
   type RoutineCalendarStatus,
 } from "@jargon/ui/features/conversation/RoutineCalendar";
-import { createEffect, createMemo, createSignal, createStore, onSettled } from "solid-js";
+import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, createStore, onSettled, Show, untrack } from "solid-js";
 import { useNavigation } from "../../navigation";
 import { useAgents } from "../agents/agents-context";
 import { useChannels } from "../channels/channels-context";
+import { PlannerProposalControls } from "../school/PlannerProposalControls";
+import { isPlannerEntry, plannerCalendarEntries } from "../school/planner-calendar";
+import { plannerAccepted, plannerOwnerId, plannerProposal } from "../school/planner-state";
+import { schoolActive, schoolAgentIdOf } from "../school/school-workspace";
 import { useWindowPage } from "../window/window-page-context";
 import { desktopScheduleSource, type ScheduleSource } from "./schedule-port";
 
@@ -35,6 +42,14 @@ interface ScheduleViewProps extends SchedulePanelProps {
   channelsSupported: boolean;
   onOpenAgent: (agentId: string) => void;
   onOpenRoutine: (routine: ScheduleRoutine) => void;
+  /** Routines and runs that the host does not hold, such as the study blocks of the Planner. */
+  extra?: { routines: RoutineCalendarRoutine[]; runs: RoutineCalendarRun[] } | undefined;
+  /** Opens one of the extra routines. */
+  onOpenExtra?: (routineId: string) => void;
+  /** Shown above the calendar. */
+  banner?: JSX.Element;
+  /** Where the calendar opens and follows, when it is not on today. */
+  focus?: { day: string; view: "week" | "month" } | undefined;
 }
 
 /**
@@ -85,6 +100,35 @@ export function SchedulePanel(props: SchedulePanelProps) {
     setSettingsRequest({ agentId, nonce: Date.now(), routine: { routineId: routine.id, name: routine.name } });
   }
 
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  /** In the School, the Planner's study blocks join the calendar. A timetable that waits for a decision shows as proposed. */
+  const plannerEntries = createMemo(() =>
+    schoolActive()
+      ? plannerCalendarEntries(
+          plannerAccepted(),
+          plannerProposal()?.blocks ?? [],
+          plannerOwnerId() ?? schoolAgentIdOf("planner"),
+          new Date(),
+        )
+      : undefined,
+  );
+  // The calendar shows the proposed timetable: its first day, as a week, or as a month when it runs longer.
+  const plannerFocus = createMemo(() => {
+    const blocks = schoolActive() ? (plannerProposal()?.blocks ?? []) : [];
+    const first = blocks[0];
+    const last = blocks.at(-1);
+    if (!first || !last) return undefined;
+    const day = calendarDayOf(new Date(first.start), timeZone);
+    const days = (Date.parse(last.start) - Date.parse(first.start)) / 86_400_000;
+    return { day, view: days > 6 ? ("month" as const) : ("week" as const) };
+  });
+
+  function openPlannerEntry(): void {
+    const plannerId = schoolAgentIdOf("planner");
+    windowPage.showAgents();
+    if (plannerId) selectAgent(plannerId);
+  }
+
   return (
     <ScheduleView
       {...props}
@@ -94,6 +138,14 @@ export function SchedulePanel(props: SchedulePanelProps) {
       channelsSupported={channels.supported()}
       onOpenAgent={selectAgent}
       onOpenRoutine={openRoutine}
+      extra={plannerEntries()}
+      onOpenExtra={openPlannerEntry}
+      focus={plannerFocus()}
+      banner={
+        <Show when={schoolActive() && plannerProposal()}>
+          <PlannerProposalControls />
+        </Show>
+      }
     />
   );
 }
@@ -107,7 +159,8 @@ export function ScheduleView(props: ScheduleViewProps) {
     calendar: null,
   });
   // Today's week, wherever today falls in it, until the calendar reports the days it shows.
-  let range = rangeAround(Date.now() - 7 * DAY, Date.now() + 7 * DAY);
+  const opensOn = untrack(() => (props.focus ? Date.parse(props.focus.day) : Date.now()));
+  let range = rangeAround(opensOn - 7 * DAY, opensOn + 7 * DAY);
   let generation = 0;
 
   /** A refresh that an event starts keeps the calendar on screen; only the first load and Retry blank it. */
@@ -144,17 +197,18 @@ export function ScheduleView(props: ScheduleViewProps) {
     const members = new Map(
       props.channels.map((channel) => [channel.id, channel.members.map((member) => member.agentId)]),
     );
-    return visibleRoutines().map((routine) => ({
+    const hostRoutines = visibleRoutines().map((routine) => ({
       id: routine.id,
       name: routine.name,
       agentIds: routine.owner.kind === "agent" ? [routine.owner.agentId] : (members.get(routine.owner.channelId) ?? []),
       schedule: routine.schedule,
     }));
+    return [...hostRoutines, ...(props.extra?.routines ?? [])];
   });
 
   const runs = createMemo(() => {
     const active = new Map(visibleRoutines().map((routine) => [routine.id, routine.active]));
-    return (state.calendar?.runs ?? [])
+    const hostRuns = (state.calendar?.runs ?? [])
       .filter((run) => active.has(run.routineId))
       .map((run) => ({
         id: run.id,
@@ -162,9 +216,14 @@ export function ScheduleView(props: ScheduleViewProps) {
         at: run.at,
         status: calendarStatus(run.status, active.get(run.routineId) ?? false),
       }));
+    return [...hostRuns, ...(props.extra?.runs ?? [])];
   });
 
   function openRoutine(routineId: string): void {
+    if (isPlannerEntry(routineId)) {
+      props.onOpenExtra?.(routineId);
+      return;
+    }
     const routine = state.calendar?.routines.find((candidate) => candidate.id === routineId);
     if (routine) props.onOpenRoutine(routine);
   }
@@ -193,6 +252,8 @@ export function ScheduleView(props: ScheduleViewProps) {
   return (
     <div class="schedule-pane">
       <RoutineCalendar
+        banner={props.banner}
+        focus={props.focus}
         routines={routines()}
         runs={runs()}
         agents={props.agents}

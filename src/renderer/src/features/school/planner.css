@@ -1,0 +1,462 @@
+/* The Planner: its panel above the composer, the timetable controls, and the calendar bar. */
+.planner-card {
+  display: flex;
+  min-height: 0;
+  flex: 0 1 auto;
+  max-height: min(38rem, 70vh);
+  flex-direction: column;
+  gap: var(--jargon-space-2);
+  margin: 0 auto var(--jargon-space-2);
+  width: min(100% - var(--jargon-space-6), 46rem);
+  overflow: hidden;
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-card);
+  background: var(--jargon-bg-surface);
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+  color: var(--jargon-text-primary);
+}
+
+/* The header, the tabs and the footer keep their size. Only the list of units scrolls. */
+.planner-card > * {
+  flex-shrink: 0;
+}
+
+.planner-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  font-size: var(--jargon-text-xl);
+}
+
+.planner-title {
+  min-width: 0;
+  flex: 1;
+}
+
+.planner-question .planner-head strong {
+  flex: 1;
+}
+
+.planner-glyph {
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+  flex: 0 0 auto;
+}
+
+.planner-hint {
+  margin: 0;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+}
+
+.planner-exam-choices {
+  display: flex;
+  gap: var(--jargon-space-2);
+}
+
+.planner-units {
+  display: flex;
+  min-height: 6rem;
+  flex: 1 1 auto;
+  flex-shrink: 1;
+  flex-direction: column;
+  gap: var(--jargon-space-1);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.planner-unit {
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-bg-control);
+}
+
+.planner-unit-row {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-1-5) var(--jargon-space-3);
+}
+
+.planner-unit-name {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  border: 0;
+  background: transparent;
+  padding: var(--jargon-space-0-5) 0;
+  color: var(--jargon-text-primary);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--jargon-text-lg);
+  text-align: left;
+}
+
+.planner-unit-name > span:first-child {
+  flex: 1;
+}
+
+.planner-unit-name svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+  flex: 0 0 auto;
+  color: var(--jargon-text-muted);
+}
+
+.planner-unit-name:focus-visible {
+  outline: 2px solid var(--jargon-border-focus);
+  outline-offset: 2px;
+}
+
+.planner-unit-count {
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+}
+
+.planner-topics {
+  display: flex;
+  margin: 0;
+  flex-direction: column;
+  padding: 0 var(--jargon-space-3) var(--jargon-space-2) var(--jargon-space-8);
+  list-style: none;
+}
+
+.planner-topic {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  padding: var(--jargon-space-0-5) 0;
+  font-size: var(--jargon-text-md);
+}
+
+.planner-topic-name {
+  min-width: 0;
+  flex: 1;
+}
+
+.planner-topic-hours {
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.planner-topic-done {
+  display: inline-flex;
+  width: var(--jargon-control-xs);
+  justify-content: center;
+  color: var(--jargon-success-text);
+}
+
+.planner-topic-done svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+}
+
+.planner-selection {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+}
+
+.planner-selection-text {
+  flex: 1;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+}
+
+.planner-request,
+.planner-proposal-change {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+}
+
+.planner-request > :first-child,
+.planner-proposal-change > :first-child {
+  flex: 1;
+}
+
+.planner-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-1-5);
+  margin: 0;
+  color: var(--jargon-success-text);
+  font-size: var(--jargon-text-md);
+}
+
+.planner-notice[data-kind="error"] {
+  color: var(--jargon-danger-text);
+}
+
+.planner-notice svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+}
+
+/* The timetable that waits for a decision. */
+.planner-proposal {
+  display: flex;
+  align-self: start;
+  flex-direction: column;
+  gap: var(--jargon-space-1-5);
+  border-radius: var(--jargon-radius-lg);
+  background: var(--jargon-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--jargon-accent);
+  padding: var(--jargon-space-3);
+  font-size: var(--jargon-text-md);
+}
+
+.planner-proposal-head {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-2);
+  font-size: var(--jargon-text-lg);
+}
+
+.planner-proposal-head svg {
+  width: var(--jargon-icon-md);
+  height: var(--jargon-icon-md);
+}
+
+.planner-proposal p {
+  margin: 0;
+}
+
+.planner-proposal-request {
+  color: var(--jargon-text-secondary);
+}
+
+.planner-proposal-note {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-1-5);
+  color: var(--jargon-text-secondary);
+}
+
+.planner-proposal-note svg {
+  width: var(--jargon-icon-sm);
+  height: var(--jargon-icon-sm);
+  flex: 0 0 auto;
+}
+
+.planner-proposal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jargon-space-2);
+}
+
+/* In the calendar, the proposal sits under the toolbar, in line with the days. */
+.routine-planner-header > .planner-proposal {
+  margin-inline: var(--jargon-space-8);
+}
+
+/* In the Planning page the syllabus card fills its column. */
+.planning-page-left > .planner-card {
+  width: 100%;
+  max-height: min(44rem, 72vh);
+  margin: 0;
+}
+
+/* The weekly calendar of the Planning page. */
+.planner-week {
+  --planner-hour: 3rem;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--jargon-space-2);
+  border: 1px solid var(--jargon-border);
+  border-radius: var(--jargon-radius-card);
+  background: var(--jargon-bg-surface);
+  padding: var(--jargon-space-3) var(--jargon-space-4);
+}
+
+.planner-week-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--jargon-space-3);
+}
+
+.planner-week-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--jargon-space-2);
+}
+
+.planner-week-title strong {
+  font-size: var(--jargon-text-xl);
+}
+
+.planner-week-title span {
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-md);
+}
+
+.planner-week-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--jargon-space-1);
+}
+
+.planner-week-days,
+.planner-week-body {
+  display: grid;
+  grid-template-columns: 3.25rem repeat(7, minmax(0, 1fr));
+}
+
+.planner-week-day-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+}
+
+.planner-week-day-head strong {
+  display: grid;
+  min-width: var(--jargon-control-sm);
+  height: var(--jargon-control-sm);
+  place-items: center;
+  border-radius: var(--jargon-radius-pill);
+  color: var(--jargon-text-primary);
+  font-size: var(--jargon-text-xl);
+}
+
+.planner-week-day-head[data-today="true"] strong {
+  background: var(--jargon-accent);
+  color: var(--jargon-text-on-accent);
+}
+
+.planner-week-scroll {
+  padding-top: var(--jargon-space-2);
+  max-height: min(34rem, 56vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.planner-week-body {
+  position: relative;
+  height: calc(var(--planner-hour) * var(--planner-hours));
+}
+
+.planner-week-hours {
+  display: grid;
+  grid-auto-rows: var(--planner-hour);
+}
+
+.planner-week-hour {
+  color: var(--jargon-text-muted);
+  font-size: var(--jargon-text-sm);
+  font-variant-numeric: tabular-nums;
+  transform: translateY(-0.5em);
+}
+
+.planner-week-column {
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-left: 1px solid var(--jargon-border);
+  padding: 0;
+  background-image: linear-gradient(to bottom, var(--jargon-border) 1px, transparent 1px);
+  background-size: 100% var(--planner-hour);
+}
+
+.planner-week-column[data-today="true"] {
+  background-color: var(--jargon-accent-soft);
+}
+
+.planner-week-block {
+  --planner-tone: var(--jargon-accent);
+  position: absolute;
+  right: var(--jargon-space-0-5);
+  left: var(--jargon-space-0-5);
+  display: flex;
+  min-height: 1.5rem;
+  flex-direction: column;
+  gap: var(--jargon-space-0-5);
+  overflow: hidden;
+  border-radius: var(--jargon-radius-md);
+  background: var(--jargon-bg-control);
+  box-shadow: inset 3px 0 0 var(--planner-tone);
+}
+
+.planner-week-block-main {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--jargon-space-0-5);
+  border: 0;
+  background: transparent;
+  padding: var(--jargon-space-1) var(--jargon-space-1) var(--jargon-space-1) var(--jargon-space-2);
+  color: var(--jargon-text-primary);
+  cursor: grab;
+  font: inherit;
+  font-size: var(--jargon-text-sm);
+  line-height: var(--jargon-leading-sm);
+  text-align: left;
+}
+
+.planner-week-block-main:focus-visible {
+  outline: 2px solid var(--jargon-border-focus);
+  outline-offset: -2px;
+}
+
+.planner-week-block[data-tone="2"] {
+  --planner-tone: var(--jargon-chart-series-codex);
+}
+
+.planner-week-block[data-tone="3"] {
+  --planner-tone: var(--jargon-chart-series-grok);
+}
+
+.planner-week-block[data-tone="4"] {
+  --planner-tone: var(--jargon-success);
+}
+
+.planner-week-block[data-tone="5"] {
+  --planner-tone: var(--jargon-warning-text);
+}
+
+.planner-week-block[data-proposed="true"] {
+  outline: 1px dashed var(--planner-tone);
+  outline-offset: -1px;
+  background: transparent;
+}
+
+.planner-week-block-main:active {
+  cursor: grabbing;
+}
+
+.planner-week-tag {
+  align-self: flex-start;
+  border-radius: var(--jargon-radius-pill);
+  box-shadow: inset 0 0 0 1px var(--planner-tone);
+  padding: 0 var(--jargon-space-1-5);
+  color: var(--planner-tone);
+  font-size: var(--jargon-text-sm);
+}
+
+.planner-week-block-title {
+  font-weight: 600;
+}
+
+.planner-week-block-time {
+  color: var(--jargon-text-muted);
+}
+
+.planner-week-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  opacity: 0;
+}
+
+.planner-week-block:hover .planner-week-remove,
+.planner-week-remove:focus-visible {
+  opacity: 1;
+}

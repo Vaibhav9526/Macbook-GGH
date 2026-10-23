@@ -19,6 +19,7 @@ import { WorkspaceConversation } from "./features/conversation/WorkspaceConversa
 import { WorkspaceDirectConversation } from "./features/conversation/WorkspaceDirectConversation";
 import { FloorOverlayHost } from "./features/floor/FloorHost";
 import { WorkspaceServerOnboarding } from "./features/onboarding/WorkspaceServerOnboarding";
+import { PlanningPanel } from "./features/planning/PlanningPanel";
 import { useRemoteDesktop } from "./features/remote-desktop/remote-desktop-context";
 import { WorkspaceRoutineFlows } from "./features/routine-flows/WorkspaceRoutineFlows";
 import { SchoolWorkspaceHost } from "./features/school/SchoolWorkspaceHost";
@@ -92,6 +93,7 @@ export function WorkspaceShell(props: { account: () => CentralAuthUser }) {
    */
   const middlePane = createMemo(() => {
     if (windowPage.page() === "tasks") return "tasks";
+    if (windowPage.page() === "planning") return "planning";
     if (agentSetupOpen()) return "agent-setup";
     if (channelOpen()) return "channel";
     if (activeDirectMember()) return "direct";
@@ -100,7 +102,7 @@ export function WorkspaceShell(props: { account: () => CentralAuthUser }) {
   const agentChatOpen = () => middlePane() === "agent";
   /** The list stays while a connection screen covers the page: the screen does not span the sidebar. */
   const tasksAgentsHidden = () =>
-    middlePane() === "tasks" &&
+    (middlePane() === "tasks" || middlePane() === "planning") &&
     !windowPage.tasksAgentsOpen() &&
     scope.loaded() &&
     !scope.connection.panelsFailed &&
@@ -264,7 +266,16 @@ export function WorkspaceShell(props: { account: () => CentralAuthUser }) {
               />
             )}
           </Show>
-          <Show when={serverOnboardingOpen() && middlePane() !== "tasks"}>
+          <Show when={middlePane() === "planning" ? usage.state.serverId : null}>
+            {(serverId) => (
+              <PlanningPanel
+                serverId={serverId()}
+                agentsOpen={!tasksAgentsHidden()}
+                onToggleAgents={() => windowPage.setTasksAgentsOpen(tasksAgentsHidden())}
+              />
+            )}
+          </Show>
+          <Show when={serverOnboardingOpen() && middlePane() !== "tasks" && middlePane() !== "planning"}>
             <WorkspaceServerOnboarding />
           </Show>
           <Show when={middlePane() === "agent-setup" && !serverOnboardingOpen()}>

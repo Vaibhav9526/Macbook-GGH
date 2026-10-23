@@ -3,8 +3,22 @@ import { isDynamicRecord } from "./runtime-values";
 // The School quiz: the Teacher's @quiz. Copied from IsCool (src/main/quiz.ts, classroomIpc.ts). Main asks the
 // user's Claude login for the questions, grades the answers itself, and asks once more for the analysis.
 
+/**
+ * A small diagram that a question shows, as data. The renderer draws it as SVG, so a model never sends markup.
+ * `graph` is a line graph with labelled axes, for example a velocity-time graph.
+ */
+export interface SchoolQuizDiagram {
+  kind: "graph";
+  xLabel: string;
+  yLabel: string;
+  lines: Array<{ label: string; points: Array<[number, number]> }>;
+  /** Labelled points on the graph, such as the peak of a curve. */
+  marks: Array<{ x: number; y: number; label: string }>;
+}
+
 export interface SchoolQuizQuestion {
   q: string;
+  diagram?: SchoolQuizDiagram;
   options: [string, string, string, string];
   /** 0 to 3: the index of the correct option. */
   answer: number;
@@ -41,6 +55,8 @@ export interface SchoolQuizStartInput {
   doubt: string;
   /** The last messages of the chat, oldest first, so the quiz tests what was discussed. */
   context: Array<{ role: "user" | "agent"; text: string }>;
+  /** Concepts the student got wrong in earlier quizzes, so this quiz builds on them. */
+  weakTopics?: string[];
 }
 
 export type SchoolQuizStartResult = { ok: true; quiz: SchoolQuizData } | { ok: false; error: string };

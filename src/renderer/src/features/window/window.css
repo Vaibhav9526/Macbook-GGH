@@ -478,6 +478,7 @@
       .agent-usage-body,
       .routine-planner-toolbar,
       .routine-planner-body,
+      .routine-planner-header > .planner-proposal,
       .marketplace-crumbs,
       .skills-marketplace-body
     ) {

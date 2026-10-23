@@ -2,6 +2,7 @@ import { MessageSelectionActions } from "@jargon/ui/features/conversation/Select
 import { useText } from "@jargon/ui/text";
 import { createEffect, Show } from "solid-js";
 import { currentDevicePlatform } from "../../send-shortcut-preference";
+import { SchoolPlannerPanel } from "../school/SchoolPlannerPanel";
 import { SchoolQuizPanel } from "../school/SchoolQuizPanel";
 import { ConversationComposer } from "./ConversationComposer";
 import { ConversationHeader } from "./ConversationHeader";
@@ -101,6 +102,7 @@ export function ConversationView(props: ConversationProps) {
         <ConversationTimeline />
 
         <SchoolQuizPanel />
+        <SchoolPlannerPanel />
         <ConversationComposer />
 
         <ConversationPanels onOpenUsage={props.onOpenUsage} />

@@ -1,0 +1,8 @@
+# Rotates the container logs of the Jargon instances. jargon-logrotate.timer starts it.
+# `jargon-instance setup` installs it. See docs/docker.md#logs.
+[Unit]
+Description=Rotate the container logs of the Jargon instances
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/logrotate --state /var/lib/logrotate/jargon-docker.status /etc/jargon-docker/logrotate.conf

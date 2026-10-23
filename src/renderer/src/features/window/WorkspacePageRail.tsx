@@ -3,17 +3,15 @@ import { AGENT_TASKS_CAPABILITY } from "@jargon/contracts/team-protocol/agent-ta
 import type { SidebarView } from "@jargon/ui/features/sidebar/sidebar-types";
 import { PageRail, type PageRailPage } from "@jargon/ui/features/window/PageRail";
 import { useText } from "@jargon/ui/text";
-import { appPort } from "../../app-port";
 import { useLayout } from "../../layout";
 import { useChannels } from "../channels/channels-context";
 import { FloorRailButton } from "../floor/FloorHost";
+import { schoolActive } from "../school/school-workspace";
 import { serverSupportsCapability } from "../servers/server-capabilities";
 import { useServers } from "../servers/servers-context";
 import { useSettings } from "../settings/settings-context";
 import { useUpdates } from "../updates/updates-context";
-import { useWhatsNew } from "../updates/whats-new-context";
 import { usePlanLimitRows } from "../usage/plan-limit-rows";
-import { RailHelpMenu } from "./RailHelpMenu";
 import { useWindowPage } from "./window-page-context";
 
 /**
@@ -27,7 +25,6 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
   const updates = useUpdates();
   const layout = useLayout();
   const channels = useChannels();
-  const whatsNew = useWhatsNew();
   const { activeServer } = useServers();
   /** Agents and Routines show the same page; they set the list of the sidebar. */
   function showSidebarView(view: SidebarView) {
@@ -62,18 +59,12 @@ export function WorkspacePageRail(props: { hidden: boolean }) {
       onRoutines={() => showSidebarView("routines")}
       onSchedule={windowPage.openSchedule}
       onTasks={tasksAvailable() ? windowPage.openTasks : undefined}
+      onPlanning={schoolActive() ? windowPage.openPlanning : undefined}
       onUsage={windowPage.openUsage}
       onMarketplace={() => setSkillsMarketplaceOpen(true)}
       onSettings={(button) => (updateNotice() ? openAppSettings(button, "updates") : windowPage.openSettings(button))}
       settingsNotice={updateNotice()}
       extra={<FloorRailButton />}
-      help={
-        <RailHelpMenu
-          version={whatsNew.state.version}
-          onOpenWhatsNew={whatsNew.reopen}
-          onOpenLink={(destination) => void appPort().openExternal(destination)}
-        />
-      }
     />
   );
 }

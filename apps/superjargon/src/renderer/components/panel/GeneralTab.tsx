@@ -1,0 +1,490 @@
+import { useState } from 'react';
+import {
+  PANEL_COMPONENT_OPACITY_MAX,
+  PANEL_COMPONENT_OPACITY_MIN,
+  PANEL_OPACITY_MAX,
+  PANEL_OPACITY_MIN,
+} from '../../../shared/types';
+import type {
+  FlickySettings,
+  MemoryStats,
+  PanelComponentOpacity,
+} from '../../../shared/types';
+import { ShortcutCapture } from './ShortcutCapture';
+import { Slider } from './Slider';
+
+interface GeneralTabProps {
+  settings: FlickySettings;
+  memory: MemoryStats | null;
+}
+
+function formatTokens(n: number): string {
+  if (n < 1000) return `${n}`;
+  if (n < 1_000_000) return `${(n / 1000).toFixed(n >= 10_000 ? 0 : 1)}k`;
+  return `${(n / 1_000_000).toFixed(1)}M`;
+}
+
+/**
+ * Normalize an accelerator so two different spellings of the same chord
+ * compare equal: lowercase, trimmed parts, modifier aliases folded
+ * (Control→ctrl, Command/Cmd/Meta→meta), and parts sorted so
+ * "Ctrl+Alt+D" and "Alt+Ctrl+D" are the same shortcut.
+ */
+function normalizeShortcut(accel: string): string {
+  return accel
+    .split('+')
+    .map((p) => p.trim().toLowerCase())
+    .filter(Boolean)
+    .map((p) => {
+      if (p === 'control') return 'ctrl';
+      if (p === 'command' || p === 'cmd') return 'meta';
+      return p;
+    })
+    .sort()
+    .join('+');
+}
+
+function formatRelative(ts: number | null): string {
+  if (!ts) return 'never';
+  const sec = Math.floor((Date.now() - ts) / 1000);
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  return `${Math.floor(hr / 24)}d ago`;
+}
+
+/**
+ * Small numeric field for "Max agent steps". Keeps a local draft while
+ * typing (clamping mid-keystroke makes "30" unreachable — typing "3" would
+ * pin to 3), then commits clamped on blur or Enter; Escape reverts.
+ */
+function StepsInput({ value, disabled }: { value: number; disabled?: boolean }) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = (raw: string) => {
+    const n = parseInt(raw, 10);
+    if (!Number.isNaN(n)) {
+      window.flicky.setAgentMaxSteps(Math.min(30, Math.max(3, n)));
+    }
+    setDraft(null);
+  };
+  return (
+    <input
+      className="num-input"
+      type="number"
+      min={3}
+      max={30}
+      disabled={disabled}
+      value={draft ?? String(value)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={(e) => commit(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit(e.currentTarget.value);
+        else if (e.key === 'Escape') setDraft(null);
+      }}
+      aria-label="Max agent steps"
+    />
+  );
+}
+
+/**
+ * Per-surface opacity rows, in the order the surfaces stack front to back.
+ * The keys are the PanelComponentOpacity fields and double as the --op-*
+ * CSS var suffixes panel.css scales each layer by, so a row here and a
+ * var() there are the same knob — see PANEL_COMPONENT_OPACITY_MIN/MAX.
+ */
+const COMPONENT_OPACITY_ROWS: { key: keyof PanelComponentOpacity; label: string; hint: string }[] = [
+  { key: 'sidebar', label: 'Sidebar', hint: 'the left rail behind the nav' },
+  { key: 'content', label: 'Content', hint: 'the main panel background' },
+  { key: 'cards', label: 'Cards', hint: 'section cards, chips and inputs' },
+  { key: 'borders', label: 'Borders', hint: 'hairlines, dividers and outlines' },
+];
+
+function percent(v: number): string {
+  return `${Math.round(v * 100)}%`;
+}
+
+export function GeneralTab({ settings, memory }: GeneralTabProps) {
+  const [editingShortcut, setEditingShortcut] = useState(false);
+  const [editingDictationShortcut, setEditingDictationShortcut] = useState(false);
+  const [isCompacting, setIsCompacting] = useState(false);
+  const [compactStatus, setCompactStatus] = useState<
+    { kind: 'success' | 'error'; message: string } | null
+  >(null);
+
+  const onCompact = async () => {
+    setIsCompacting(true);
+    setCompactStatus(null);
+    try {
+      const res = await window.flicky.compactContext();
+      if (res.ok) {
+        setCompactStatus({ kind: 'success', message: 'Compacted.' });
+      } else {
+        setCompactStatus({ kind: 'error', message: res.error ?? 'Compaction failed.' });
+      }
+    } catch (err) {
+      setCompactStatus({
+        kind: 'error',
+        message: err instanceof Error ? err.message : 'Compaction failed.',
+      });
+    } finally {
+      setIsCompacting(false);
+      setTimeout(() => setCompactStatus(null), 4000);
+    }
+  };
+
+  const tokens = memory?.tokens ?? 0;
+  const budget = memory?.tokenBudget ?? 250_000;
+  const pct = Math.min(100, (tokens / budget) * 100);
+  const healthLabel = pct < 60 ? 'healthy' : pct < 85 ? 'getting full' : 'near cap';
+  const healthColor =
+    pct < 60 ? 'var(--fl-ok)' : pct < 85 ? 'var(--fl-warn)' : 'var(--fl-danger)';
+
+  const shortcutKeys = settings.pushToTalkShortcut.split('+').filter(Boolean);
+  const dictationShortcutKeys = settings.dictationShortcut.split('+').filter(Boolean);
+  const isMac = window.flicky.platform === 'darwin';
+
+  // Two global hotkeys now share this page — flag it when they collide.
+  // We warn rather than block: main owns registration and may reject the
+  // new binding anyway, so the setter still fires.
+  const pttEmpty = shortcutKeys.length === 0;
+  const dictationEmpty = dictationShortcutKeys.length === 0;
+  const shortcutConflict =
+    !pttEmpty &&
+    !dictationEmpty &&
+    normalizeShortcut(settings.pushToTalkShortcut) === normalizeShortcut(settings.dictationShortcut);
+
+  return (
+    <>
+      <h1 className="main-h1">
+        General<em>.</em>
+      </h1>
+      <p className="main-lead">Shortcuts, memory, and the companion cursor.</p>
+
+      <div className="section">
+        <div className="section-title" style={{ marginBottom: 10 }}>Shortcut</div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Push to talk</div>
+            <div className="row-s">
+              {settings.pttMode === 'toggle'
+                ? 'tap once to start, tap again to stop'
+                : 'hold to speak, release to send'}
+            </div>
+            {pttEmpty && <div className="row-warn">no shortcut bound — you won't be able to talk</div>}
+            {shortcutConflict && (
+              <div className="row-warn">same keys as push-to-dictate — pick a different combo</div>
+            )}
+          </div>
+          {editingShortcut ? (
+            <ShortcutCapture
+              onSave={(accel) => {
+                window.flicky.setPushToTalkShortcut(accel);
+                setEditingShortcut(false);
+              }}
+              onCancel={() => setEditingShortcut(false)}
+            />
+          ) : (
+            <div className="shortcut-edit">
+              <div className="keys">
+                {shortcutKeys.map((k, i) => (
+                  <kbd key={`${k}-${i}`}>{k}</kbd>
+                ))}
+              </div>
+              <span className="rec" onClick={() => setEditingShortcut(true)}>edit</span>
+            </div>
+          )}
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Trigger style</div>
+            <div className="row-s">
+              {isMac
+                ? 'macOS only supports tap-toggle — Electron can’t see the key release for hold-to-talk.'
+                : 'pick how the shortcut behaves'}
+            </div>
+          </div>
+          <div className="ptt-mode-seg" role="tablist" aria-label="Push-to-talk mode">
+            <button
+              role="tab"
+              aria-selected={settings.pttMode === 'hold'}
+              className={`seg ${settings.pttMode === 'hold' ? 'on' : ''}`}
+              disabled={isMac}
+              title={isMac ? 'Not supported on macOS' : ''}
+              onClick={() => window.flicky.setPttMode('hold')}
+            >
+              Hold
+            </button>
+            <button
+              role="tab"
+              aria-selected={settings.pttMode === 'toggle'}
+              className={`seg ${settings.pttMode === 'toggle' ? 'on' : ''}`}
+              onClick={() => window.flicky.setPttMode('toggle')}
+            >
+              Toggle
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-title" style={{ marginBottom: 4 }}>Modes</div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Always-on listening</div>
+            <div className="row-s">listens continuously — no hotkey needed</div>
+          </div>
+          <button
+            className={`toggle ${settings.alwaysOnEnabled ? 'on' : ''}`}
+            onClick={() => window.flicky.setAlwaysOn(!settings.alwaysOnEnabled)}
+            aria-label="Toggle always-on listening"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Dictation mode</div>
+            <div className="row-s">types what you say into the focused field instead of answering</div>
+          </div>
+          <button
+            className={`toggle ${settings.dictationEnabled ? 'on' : ''}`}
+            onClick={() => window.flicky.setDictation(!settings.dictationEnabled)}
+            aria-label="Toggle dictation mode"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Push-to-dictate hotkey</div>
+            <div className="row-s">hold to dictate — types into the focused field</div>
+            {dictationEmpty && (
+              <div className="row-warn">no shortcut bound — dictation hotkey won't fire</div>
+            )}
+            {shortcutConflict && (
+              <div className="row-warn">same keys as push to talk — pick a different combo</div>
+            )}
+          </div>
+          {editingDictationShortcut ? (
+            <ShortcutCapture
+              onSave={(accel) => {
+                window.flicky.setDictationShortcut(accel);
+                setEditingDictationShortcut(false);
+              }}
+              onCancel={() => setEditingDictationShortcut(false)}
+            />
+          ) : (
+            <div className="shortcut-edit">
+              <div className="keys">
+                {dictationShortcutKeys.map((k, i) => (
+                  <kbd key={`${k}-${i}`}>{k}</kbd>
+                ))}
+              </div>
+              <span className="rec" onClick={() => setEditingDictationShortcut(true)}>edit</span>
+            </div>
+          )}
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Agent mode</div>
+            <div className="row-s">superjargon agent … takes over mouse + keyboard</div>
+          </div>
+          <button
+            className={`toggle ${settings.agentEnabled ? 'on' : ''}`}
+            onClick={() => window.flicky.setAgentEnabled(!settings.agentEnabled)}
+            aria-label="Toggle agent mode"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Max agent steps</div>
+            <div className="row-s">hard stop for one agent run — 3 to 30 screenshot → act loops</div>
+          </div>
+          <StepsInput value={settings.agentMaxSteps} disabled={!settings.agentEnabled} />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Mute routine announcements</div>
+            <div className="row-s">routines still run on schedule — completions stay silent (no voice/overlay)</div>
+          </div>
+          <button
+            className={`toggle ${settings.routinesMuted ? 'on' : ''}`}
+            onClick={() => window.flicky.setRoutinesMuted(!settings.routinesMuted)}
+            aria-label="Toggle routine announcements"
+          />
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-title" style={{ marginBottom: 4 }}>Appearance</div>
+        <p className="section-hint" style={{ margin: '6px 0 14px' }}>
+          Overall dims the whole panel; the four below tune one surface each, on top of it.
+        </p>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Overall</div>
+            <div className="row-s">master translucency for every surface — lower shows more desktop</div>
+          </div>
+          <div style={{ width: 220 }}>
+            <Slider
+              value={settings.panelOpacity}
+              min={PANEL_OPACITY_MIN}
+              max={PANEL_OPACITY_MAX}
+              step={0.01}
+              format={percent}
+              onChange={(v) => window.flicky.setPanelOpacity(v)}
+            />
+          </div>
+        </div>
+        {COMPONENT_OPACITY_ROWS.map(({ key, label, hint }) => (
+          <div className="row" key={key}>
+            <div className="row-main">
+              <div className="row-t">{label}</div>
+              <div className="row-s">{hint}</div>
+            </div>
+            <div style={{ width: 220 }}>
+              <Slider
+                value={settings.panelComponentOpacity[key]}
+                min={PANEL_COMPONENT_OPACITY_MIN}
+                max={PANEL_COMPONENT_OPACITY_MAX}
+                step={0.01}
+                format={percent}
+                /* One key per change: the setter takes a patch and merges it
+                   over the stored record, so a single-key patch can't drop
+                   a sibling someone else just tuned. */
+                onChange={(v) =>
+                  window.flicky.setPanelComponentOpacity({ [key]: v } as Partial<PanelComponentOpacity>)
+                }
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="section">
+        <div className="section-title">Setup</div>
+        <div className="row" style={{ borderBottom: 'none' }}>
+          <div className="row-main">
+            <div className="row-t">Replay onboarding</div>
+            <div className="row-s">walk through setup again — keys and settings stay put</div>
+          </div>
+          {/* No reload needed: main flips onboardingComplete=false and emits
+              settings, so PanelApp re-renders into <Onboarding> itself. */}
+          <button className="btn" onClick={() => window.flicky.replayOnboarding()}>
+            show onboarding again
+          </button>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-title">Memory</div>
+        <p className="section-hint" style={{ margin: '6px 0 14px' }}>
+          superjargon auto-compacts older messages into a summary near the {formatTokens(budget)} cap so the
+          conversation can run forever.
+        </p>
+        <div className="context-bar">
+          <div className="context-meta">
+            <span>
+              <b>{formatTokens(tokens)}</b> / {formatTokens(budget)} tokens
+            </span>
+            <span style={{ color: healthColor }}>{healthLabel}</span>
+          </div>
+          <div className="bar"><div className="f" style={{ width: `${pct}%` }} /></div>
+          <div className="context-footer">
+            <span>
+              {memory?.messageCount ?? 0} messages
+              {memory?.summarizedCount ? ` · ${memory.summarizedCount} summarized` : ''}
+            </span>
+            <span>last compact {formatRelative(memory?.lastCompactedAt ?? null)}</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center' }}>
+          <button className="btn xs" onClick={onCompact} disabled={isCompacting}>
+            {isCompacting && <span className="spinner-sm" />}
+            {isCompacting ? 'Compacting…' : 'Compact now'}
+          </button>
+          <button
+            className="btn xs subtle"
+            onClick={() => window.flicky.clearContext()}
+            disabled={isCompacting}
+          >
+            Clear memory
+          </button>
+          {compactStatus && (
+            <span
+              className={`compact-status ${compactStatus.kind}`}
+              title={compactStatus.message}
+            >
+              {compactStatus.message}
+            </span>
+          )}
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-title" style={{ marginBottom: 4 }}>Companion</div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Show cursor</div>
+            <div className="row-s">blue pointer that flies to things superjargon mentions</div>
+          </div>
+          <button
+            className={`toggle ${settings.isClickyCursorEnabled ? 'on' : ''}`}
+            onClick={() => window.flicky.toggleCursor(!settings.isClickyCursorEnabled)}
+            aria-label="Toggle cursor"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Allow superjargon to type for you</div>
+            <div className="row-s">
+              when off (default), superjargon copies text to your clipboard and you press paste.
+              when on, superjargon types directly into the focused field
+              {isMac && <> — requires <strong>Accessibility</strong> permission on macOS</>}.
+            </div>
+          </div>
+          <button
+            className={`toggle ${settings.autoTypeEnabled ? 'on' : ''}`}
+            onClick={() => window.flicky.setAutoTypeEnabled(!settings.autoTypeEnabled)}
+            aria-label="Toggle auto-typing"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Launch at login</div>
+            <div className="row-s">open superjargon when you sign in</div>
+          </div>
+          <button
+            className={`toggle ${settings.launchAtLogin ? 'on' : ''}`}
+            onClick={() => window.flicky.setLaunchAtLogin(!settings.launchAtLogin)}
+            aria-label="Toggle launch at login"
+          />
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Setup</div>
+            <div className="row-s">re-check permissions, keys, the shortcut and your mic step by step</div>
+          </div>
+          <button className="btn xs" onClick={() => window.flicky.replayOnboarding()}>
+            Run setup again
+          </button>
+        </div>
+        <div className="row">
+          <div className="row-main">
+            <div className="row-t">Stream window</div>
+            <div className="row-s">floating transparent panel that shows the live Q/A — scroll, select, copy</div>
+          </div>
+          <div className="seg">
+            {(['off', 'responses', 'always'] as const).map((v) => (
+              <button
+                key={v}
+                className={settings.streamVisibility === v ? 'on' : ''}
+                onClick={() => window.flicky.setStreamVisibility(v)}
+              >
+                {v === 'responses' ? 'while replying' : v}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

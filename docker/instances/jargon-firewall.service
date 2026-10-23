@@ -1,0 +1,14 @@
+# Applies the firewall of the Jargon instances before Docker starts their containers.
+# `jargon-instance setup` installs it. See docs/docker.md#several-instances-on-one-host.
+[Unit]
+Description=Firewall of the Jargon Docker instances
+After=ufw.service
+Before=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/opt/jargon-docker/instances/jargon-firewall
+
+[Install]
+WantedBy=multi-user.target docker.service

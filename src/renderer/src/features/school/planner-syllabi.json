@@ -1,0 +1,963 @@
+{
+  "jee": {
+    "id": "jee",
+    "name": "JEE (Main and Advanced)",
+    "subjects": [
+      {
+        "id": "physics",
+        "name": "Physics",
+        "units": [
+          {
+            "id": "units-and-measurements",
+            "name": "Units and Measurements",
+            "hoursPerTopic": 2,
+            "topics": [
+              "SI units and dimensions",
+              "Dimensional analysis and its uses",
+              "Significant figures and errors in measurement",
+              "Measuring instruments: vernier calipers and screw gauge"
+            ]
+          },
+          {
+            "id": "kinematics",
+            "name": "Kinematics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Motion in a straight line",
+              "Relative velocity",
+              "Graphs of motion",
+              "Projectile motion",
+              "Uniform circular motion"
+            ]
+          },
+          {
+            "id": "laws-of-motion",
+            "name": "Laws of Motion",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Newton's laws of motion",
+              "Friction",
+              "Free body diagrams and constraints",
+              "Circular motion dynamics",
+              "Pseudo forces and non-inertial frames"
+            ]
+          },
+          {
+            "id": "work-energy-and-power",
+            "name": "Work, Energy and Power",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Work done by a force",
+              "Kinetic energy and work-energy theorem",
+              "Potential energy and conservative forces",
+              "Power",
+              "Collisions in one and two dimensions"
+            ]
+          },
+          {
+            "id": "rotational-motion",
+            "name": "Rotational Motion",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Centre of mass",
+              "Torque and angular momentum",
+              "Moment of inertia",
+              "Rolling motion",
+              "Conservation of angular momentum"
+            ]
+          },
+          {
+            "id": "gravitation",
+            "name": "Gravitation",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Universal law of gravitation",
+              "Gravitational field and potential",
+              "Orbital and escape velocity",
+              "Kepler's laws and satellites"
+            ]
+          },
+          {
+            "id": "properties-of-solids-and-liquids",
+            "name": "Properties of Solids and Liquids",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Elasticity and Hooke's law",
+              "Pressure and Pascal's law",
+              "Viscosity and Stokes' law",
+              "Surface tension and capillarity",
+              "Bernoulli's principle"
+            ]
+          },
+          {
+            "id": "thermodynamics",
+            "name": "Thermodynamics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Thermal equilibrium and temperature",
+              "Heat, specific heat and calorimetry",
+              "First law of thermodynamics",
+              "Thermodynamic processes",
+              "Second law and Carnot engine",
+              "Heat transfer"
+            ]
+          },
+          {
+            "id": "kinetic-theory-of-gases",
+            "name": "Kinetic Theory of Gases",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Gas laws and ideal gas equation",
+              "Kinetic theory and RMS speed",
+              "Degrees of freedom and equipartition",
+              "Mean free path"
+            ]
+          },
+          {
+            "id": "oscillations-and-waves",
+            "name": "Oscillations and Waves",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Simple harmonic motion",
+              "Energy in SHM and the spring-mass system",
+              "Pendulum",
+              "Wave motion and the wave equation",
+              "Superposition and standing waves",
+              "Sound waves, beats and Doppler effect"
+            ]
+          },
+          {
+            "id": "electrostatics",
+            "name": "Electrostatics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Coulomb's law and electric field",
+              "Gauss's law",
+              "Electric potential and potential energy",
+              "Capacitors and dielectrics",
+              "Electric dipole"
+            ]
+          },
+          {
+            "id": "current-electricity",
+            "name": "Current Electricity",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Ohm's law and resistivity",
+              "Kirchhoff's laws",
+              "Series and parallel circuits",
+              "Wheatstone bridge, meter bridge and potentiometer",
+              "Heating effect of current"
+            ]
+          },
+          {
+            "id": "magnetic-effects-of-current-and-magnetism",
+            "name": "Magnetic Effects of Current and Magnetism",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Biot-Savart law and Ampere's law",
+              "Force on moving charges and currents",
+              "Torque on a current loop and galvanometer",
+              "Magnetic properties of materials",
+              "Earth's magnetism"
+            ]
+          },
+          {
+            "id": "electromagnetic-induction-and-alternating-current",
+            "name": "Electromagnetic Induction and Alternating Current",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Faraday's and Lenz's laws",
+              "Self and mutual inductance",
+              "AC circuits and impedance",
+              "Resonance, power and transformers"
+            ]
+          },
+          {
+            "id": "electromagnetic-waves",
+            "name": "Electromagnetic Waves",
+            "hoursPerTopic": 2,
+            "topics": ["Displacement current", "Properties of electromagnetic waves", "The electromagnetic spectrum"]
+          },
+          {
+            "id": "optics",
+            "name": "Optics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Reflection and refraction at plane and spherical surfaces",
+              "Lenses and optical instruments",
+              "Prism and dispersion",
+              "Interference and Young's double slit",
+              "Diffraction and polarisation"
+            ]
+          },
+          {
+            "id": "dual-nature-of-matter-and-radiation",
+            "name": "Dual Nature of Matter and Radiation",
+            "hoursPerTopic": 2,
+            "topics": ["Photoelectric effect", "de Broglie wavelength", "Davisson-Germer experiment"]
+          },
+          {
+            "id": "atoms-and-nuclei",
+            "name": "Atoms and Nuclei",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Bohr model of the hydrogen atom",
+              "Atomic spectra",
+              "Nuclear binding energy",
+              "Radioactivity and decay law",
+              "Fission and fusion"
+            ]
+          },
+          {
+            "id": "electronic-devices",
+            "name": "Electronic Devices",
+            "hoursPerTopic": 2,
+            "topics": ["Semiconductors and the p-n junction", "Diodes and rectifiers", "Transistors", "Logic gates"]
+          }
+        ]
+      },
+      {
+        "id": "chemistry",
+        "name": "Chemistry",
+        "units": [
+          {
+            "id": "some-basic-concepts-of-chemistry",
+            "name": "Some Basic Concepts of Chemistry",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Mole concept and molar mass",
+              "Stoichiometry and limiting reagent",
+              "Concentration terms",
+              "Laws of chemical combination"
+            ]
+          },
+          {
+            "id": "atomic-structure",
+            "name": "Atomic Structure",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Bohr model and hydrogen spectrum",
+              "Quantum numbers and orbitals",
+              "Electronic configuration rules",
+              "de Broglie and Heisenberg's principle"
+            ]
+          },
+          {
+            "id": "chemical-bonding-and-molecular-structure",
+            "name": "Chemical Bonding and Molecular Structure",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Ionic and covalent bonding",
+              "VSEPR theory and shapes",
+              "Hybridisation",
+              "Molecular orbital theory",
+              "Hydrogen bonding and intermolecular forces"
+            ]
+          },
+          {
+            "id": "states-of-matter",
+            "name": "States of Matter",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Gas laws and the ideal gas equation",
+              "Kinetic theory and real gases",
+              "Liquid state: vapour pressure and viscosity"
+            ]
+          },
+          {
+            "id": "chemical-thermodynamics",
+            "name": "Chemical Thermodynamics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "System, state functions and first law",
+              "Enthalpy and Hess's law",
+              "Entropy and spontaneity",
+              "Gibbs energy"
+            ]
+          },
+          {
+            "id": "solutions",
+            "name": "Solutions",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Concentration and Raoult's law",
+              "Colligative properties",
+              "Abnormal molar mass and van't Hoff factor"
+            ]
+          },
+          {
+            "id": "chemical-and-ionic-equilibrium",
+            "name": "Chemical and Ionic Equilibrium",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Law of mass action and Kc, Kp",
+              "Le Chatelier's principle",
+              "Acids, bases and pH",
+              "Buffers and solubility product"
+            ]
+          },
+          {
+            "id": "redox-reactions-and-electrochemistry",
+            "name": "Redox Reactions and Electrochemistry",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Oxidation numbers and balancing",
+              "Electrochemical cells and EMF",
+              "Nernst equation",
+              "Conductance and Kohlrausch's law",
+              "Electrolysis"
+            ]
+          },
+          {
+            "id": "chemical-kinetics",
+            "name": "Chemical Kinetics",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Rate law and order of reaction",
+              "Integrated rate equations and half-life",
+              "Arrhenius equation",
+              "Collision theory"
+            ]
+          },
+          {
+            "id": "periodic-table-and-periodicity",
+            "name": "Periodic Table and Periodicity",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Modern periodic law",
+              "Periodic trends in properties",
+              "Ionisation enthalpy and electron affinity"
+            ]
+          },
+          {
+            "id": "hydrogen-and-s-block-elements",
+            "name": "Hydrogen and s-Block Elements",
+            "hoursPerTopic": 2,
+            "topics": ["Hydrogen and its compounds", "Alkali metals", "Alkaline earth metals"]
+          },
+          {
+            "id": "p-block-elements",
+            "name": "p-Block Elements",
+            "hoursPerTopic": 3,
+            "topics": ["Group 13 and 14", "Group 15 and 16", "Group 17 and 18", "Oxoacids and important compounds"]
+          },
+          {
+            "id": "d-and-f-block-elements",
+            "name": "d- and f-Block Elements",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Electronic configuration and properties",
+              "Potassium dichromate and permanganate",
+              "Lanthanoids and actinoids"
+            ]
+          },
+          {
+            "id": "coordination-compounds",
+            "name": "Coordination Compounds",
+            "hoursPerTopic": 2,
+            "topics": ["Nomenclature and isomerism", "Werner's theory and VBT", "Crystal field theory", "Applications"]
+          },
+          {
+            "id": "metallurgy-and-environmental-chemistry",
+            "name": "Metallurgy and Environmental Chemistry",
+            "hoursPerTopic": 2,
+            "topics": ["Extraction of metals", "Refining and thermodynamics of metallurgy", "Environmental pollution"]
+          },
+          {
+            "id": "general-organic-chemistry",
+            "name": "General Organic Chemistry",
+            "hoursPerTopic": 3,
+            "topics": [
+              "IUPAC nomenclature",
+              "Isomerism",
+              "Electronic effects",
+              "Reaction intermediates",
+              "Reaction mechanisms"
+            ]
+          },
+          {
+            "id": "hydrocarbons",
+            "name": "Hydrocarbons",
+            "hoursPerTopic": 3,
+            "topics": ["Alkanes", "Alkenes and alkynes", "Aromatic hydrocarbons and electrophilic substitution"]
+          },
+          {
+            "id": "organic-compounds-with-halogens-and-oxygen",
+            "name": "Organic Compounds with Halogens and Oxygen",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Haloalkanes and haloarenes",
+              "Alcohols, phenols and ethers",
+              "Aldehydes and ketones",
+              "Carboxylic acids and derivatives"
+            ]
+          },
+          {
+            "id": "organic-compounds-with-nitrogen",
+            "name": "Organic Compounds with Nitrogen",
+            "hoursPerTopic": 2,
+            "topics": ["Amines", "Diazonium salts", "Cyanides and isocyanides"]
+          },
+          {
+            "id": "biomolecules-polymers-and-everyday-chemistry",
+            "name": "Biomolecules, Polymers and Everyday Chemistry",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Carbohydrates",
+              "Amino acids and proteins",
+              "Vitamins and nucleic acids",
+              "Polymers",
+              "Chemistry in everyday life"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mathematics",
+        "name": "Mathematics",
+        "units": [
+          {
+            "id": "sets-relations-and-functions",
+            "name": "Sets, Relations and Functions",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Sets and operations",
+              "Relations",
+              "Functions: domain, range and types",
+              "Composition and inverse functions"
+            ]
+          },
+          {
+            "id": "complex-numbers",
+            "name": "Complex Numbers",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Algebra of complex numbers",
+              "Argand plane and polar form",
+              "Roots of unity and De Moivre's theorem"
+            ]
+          },
+          {
+            "id": "quadratic-equations-and-inequalities",
+            "name": "Quadratic Equations and Inequalities",
+            "hoursPerTopic": 2,
+            "topics": ["Roots and discriminant", "Relation between roots and coefficients", "Quadratic inequalities"]
+          },
+          {
+            "id": "matrices-and-determinants",
+            "name": "Matrices and Determinants",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Types of matrices and operations",
+              "Determinants and properties",
+              "Inverse of a matrix",
+              "Systems of linear equations"
+            ]
+          },
+          {
+            "id": "permutations-combinations-and-binomial-theorem",
+            "name": "Permutations, Combinations and Binomial Theorem",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Fundamental principle of counting",
+              "Permutations and combinations",
+              "Binomial theorem and its applications"
+            ]
+          },
+          {
+            "id": "sequences-and-series",
+            "name": "Sequences and Series",
+            "hoursPerTopic": 2,
+            "topics": ["Arithmetic progression", "Geometric progression", "Arithmetic-geometric and special series"]
+          },
+          {
+            "id": "trigonometry",
+            "name": "Trigonometry",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Trigonometric ratios and identities",
+              "Trigonometric equations",
+              "Inverse trigonometric functions",
+              "Properties of triangles and heights and distances"
+            ]
+          },
+          {
+            "id": "limits-continuity-and-differentiability",
+            "name": "Limits, Continuity and Differentiability",
+            "hoursPerTopic": 3,
+            "topics": ["Limits and standard limits", "Continuity", "Differentiability", "Differentiation techniques"]
+          },
+          {
+            "id": "applications-of-derivatives",
+            "name": "Applications of Derivatives",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Tangents and normals",
+              "Rate of change",
+              "Increasing and decreasing functions",
+              "Maxima and minima",
+              "Mean value theorems"
+            ]
+          },
+          {
+            "id": "integral-calculus",
+            "name": "Integral Calculus",
+            "hoursPerTopic": 3,
+            "topics": ["Indefinite integration methods", "Definite integrals and properties", "Area under curves"]
+          },
+          {
+            "id": "differential-equations",
+            "name": "Differential Equations",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Order and degree",
+              "Variable separable and homogeneous equations",
+              "Linear differential equations"
+            ]
+          },
+          {
+            "id": "coordinate-geometry-straight-lines-and-circles",
+            "name": "Coordinate Geometry: Straight Lines and Circles",
+            "hoursPerTopic": 3,
+            "topics": ["Straight lines and pairs of lines", "Circles", "Family of circles"]
+          },
+          {
+            "id": "coordinate-geometry-conic-sections",
+            "name": "Coordinate Geometry: Conic Sections",
+            "hoursPerTopic": 3,
+            "topics": ["Parabola", "Ellipse", "Hyperbola"]
+          },
+          {
+            "id": "vector-algebra-and-3d-geometry",
+            "name": "Vector Algebra and 3D Geometry",
+            "hoursPerTopic": 3,
+            "topics": ["Vectors and their products", "Lines in three dimensions", "Planes in three dimensions"]
+          },
+          {
+            "id": "statistics-and-probability",
+            "name": "Statistics and Probability",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Mean, median, mode and variance",
+              "Probability and conditional probability",
+              "Bayes' theorem",
+              "Random variables and binomial distribution"
+            ]
+          },
+          {
+            "id": "mathematical-reasoning",
+            "name": "Mathematical Reasoning",
+            "hoursPerTopic": 2,
+            "topics": ["Statements and logical connectives", "Tautology and contradiction"]
+          }
+        ]
+      }
+    ]
+  },
+  "neet": {
+    "id": "neet",
+    "name": "NEET (UG)",
+    "subjects": [
+      {
+        "id": "physics",
+        "name": "Physics",
+        "units": [
+          {
+            "id": "physical-world-and-measurement",
+            "name": "Physical World and Measurement",
+            "hoursPerTopic": 2,
+            "topics": ["Units and dimensions", "Errors in measurement", "Significant figures"]
+          },
+          {
+            "id": "kinematics",
+            "name": "Kinematics",
+            "hoursPerTopic": 3,
+            "topics": ["Motion in a straight line", "Relative velocity", "Projectile motion", "Circular motion"]
+          },
+          {
+            "id": "laws-of-motion",
+            "name": "Laws of Motion",
+            "hoursPerTopic": 3,
+            "topics": ["Newton's laws", "Friction", "Circular motion dynamics"]
+          },
+          {
+            "id": "work-energy-and-power",
+            "name": "Work, Energy and Power",
+            "hoursPerTopic": 2,
+            "topics": ["Work-energy theorem", "Conservative forces and potential energy", "Power", "Collisions"]
+          },
+          {
+            "id": "rotational-motion",
+            "name": "Rotational Motion",
+            "hoursPerTopic": 3,
+            "topics": ["Centre of mass", "Torque and angular momentum", "Moment of inertia", "Rolling motion"]
+          },
+          {
+            "id": "gravitation",
+            "name": "Gravitation",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Universal law of gravitation",
+              "Gravitational potential and escape velocity",
+              "Satellites and Kepler's laws"
+            ]
+          },
+          {
+            "id": "properties-of-bulk-matter",
+            "name": "Properties of Bulk Matter",
+            "hoursPerTopic": 2,
+            "topics": [
+              "Elasticity",
+              "Fluid pressure and Pascal's law",
+              "Viscosity",
+              "Surface tension",
+              "Bernoulli's principle"
+            ]
+          },
+          {
+            "id": "thermodynamics-and-kinetic-theory",
+            "name": "Thermodynamics and Kinetic Theory",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Heat and temperature",
+              "Laws of thermodynamics",
+              "Heat engines and the Carnot cycle",
+              "Kinetic theory of gases"
+            ]
+          },
+          {
+            "id": "oscillations-and-waves",
+            "name": "Oscillations and Waves",
+            "hoursPerTopic": 3,
+            "topics": ["Simple harmonic motion", "Wave motion", "Standing waves and beats", "Doppler effect"]
+          },
+          {
+            "id": "electrostatics",
+            "name": "Electrostatics",
+            "hoursPerTopic": 3,
+            "topics": ["Coulomb's law and electric field", "Gauss's law", "Potential and capacitance"]
+          },
+          {
+            "id": "current-electricity",
+            "name": "Current Electricity",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Ohm's law and resistance",
+              "Kirchhoff's laws",
+              "Cells and potentiometer",
+              "Heating effect of current"
+            ]
+          },
+          {
+            "id": "magnetism-and-moving-charges",
+            "name": "Magnetism and Moving Charges",
+            "hoursPerTopic": 3,
+            "topics": ["Biot-Savart and Ampere's law", "Force on charges and conductors", "Magnetic materials"]
+          },
+          {
+            "id": "electromagnetic-induction-and-ac",
+            "name": "Electromagnetic Induction and AC",
+            "hoursPerTopic": 3,
+            "topics": ["Faraday's and Lenz's laws", "Inductance", "AC circuits and transformers"]
+          },
+          {
+            "id": "electromagnetic-waves",
+            "name": "Electromagnetic Waves",
+            "hoursPerTopic": 2,
+            "topics": ["Nature of electromagnetic waves", "The electromagnetic spectrum"]
+          },
+          {
+            "id": "optics",
+            "name": "Optics",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Reflection and refraction",
+              "Lenses and optical instruments",
+              "Wave optics: interference and diffraction",
+              "Polarisation"
+            ]
+          },
+          {
+            "id": "dual-nature-of-matter-and-radiation",
+            "name": "Dual Nature of Matter and Radiation",
+            "hoursPerTopic": 2,
+            "topics": ["Photoelectric effect", "de Broglie wavelength"]
+          },
+          {
+            "id": "atoms-and-nuclei",
+            "name": "Atoms and Nuclei",
+            "hoursPerTopic": 2,
+            "topics": ["Bohr model", "Nuclear binding energy", "Radioactivity", "Fission and fusion"]
+          },
+          {
+            "id": "electronic-devices",
+            "name": "Electronic Devices",
+            "hoursPerTopic": 2,
+            "topics": ["Semiconductors and diodes", "Transistors", "Logic gates"]
+          }
+        ]
+      },
+      {
+        "id": "chemistry",
+        "name": "Chemistry",
+        "units": [
+          {
+            "id": "some-basic-concepts-of-chemistry",
+            "name": "Some Basic Concepts of Chemistry",
+            "hoursPerTopic": 2,
+            "topics": ["Mole concept", "Stoichiometry", "Laws of chemical combination"]
+          },
+          {
+            "id": "structure-of-atom",
+            "name": "Structure of Atom",
+            "hoursPerTopic": 3,
+            "topics": ["Bohr model", "Quantum numbers and orbitals", "Electronic configuration"]
+          },
+          {
+            "id": "classification-of-elements-and-periodicity",
+            "name": "Classification of Elements and Periodicity",
+            "hoursPerTopic": 2,
+            "topics": ["Periodic law and trends", "Ionisation enthalpy and electronegativity"]
+          },
+          {
+            "id": "chemical-bonding-and-molecular-structure",
+            "name": "Chemical Bonding and Molecular Structure",
+            "hoursPerTopic": 3,
+            "topics": ["Ionic and covalent bonds", "VSEPR and hybridisation", "Molecular orbital theory"]
+          },
+          {
+            "id": "thermodynamics",
+            "name": "Thermodynamics",
+            "hoursPerTopic": 2,
+            "topics": ["First law and enthalpy", "Entropy and Gibbs energy"]
+          },
+          {
+            "id": "equilibrium",
+            "name": "Equilibrium",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Chemical equilibrium and Le Chatelier's principle",
+              "Ionic equilibrium and pH",
+              "Buffers and solubility product"
+            ]
+          },
+          {
+            "id": "redox-reactions",
+            "name": "Redox Reactions",
+            "hoursPerTopic": 2,
+            "topics": ["Oxidation numbers", "Balancing redox reactions"]
+          },
+          {
+            "id": "solutions",
+            "name": "Solutions",
+            "hoursPerTopic": 2,
+            "topics": ["Concentration terms", "Raoult's law", "Colligative properties"]
+          },
+          {
+            "id": "electrochemistry",
+            "name": "Electrochemistry",
+            "hoursPerTopic": 2,
+            "topics": ["Electrochemical cells and Nernst equation", "Conductance", "Electrolysis"]
+          },
+          {
+            "id": "chemical-kinetics",
+            "name": "Chemical Kinetics",
+            "hoursPerTopic": 2,
+            "topics": ["Rate of reaction and order", "Integrated rate laws", "Arrhenius equation"]
+          },
+          {
+            "id": "p-block-elements",
+            "name": "p-Block Elements",
+            "hoursPerTopic": 3,
+            "topics": ["Group 13 and 14", "Group 15 and 16", "Group 17 and 18"]
+          },
+          {
+            "id": "d-and-f-block-elements",
+            "name": "d- and f-Block Elements",
+            "hoursPerTopic": 2,
+            "topics": ["Transition element properties", "Important compounds", "Lanthanoids and actinoids"]
+          },
+          {
+            "id": "coordination-compounds",
+            "name": "Coordination Compounds",
+            "hoursPerTopic": 2,
+            "topics": ["Nomenclature and isomerism", "Bonding theories"]
+          },
+          {
+            "id": "basic-principles-of-organic-chemistry",
+            "name": "Basic Principles of Organic Chemistry",
+            "hoursPerTopic": 3,
+            "topics": ["Nomenclature", "Isomerism", "Electronic effects and mechanisms"]
+          },
+          {
+            "id": "hydrocarbons",
+            "name": "Hydrocarbons",
+            "hoursPerTopic": 3,
+            "topics": ["Alkanes", "Alkenes and alkynes", "Aromatic hydrocarbons"]
+          },
+          {
+            "id": "organic-compounds-with-halogens-and-oxygen",
+            "name": "Organic Compounds with Halogens and Oxygen",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Haloalkanes and haloarenes",
+              "Alcohols, phenols and ethers",
+              "Aldehydes, ketones and carboxylic acids"
+            ]
+          },
+          {
+            "id": "organic-compounds-with-nitrogen",
+            "name": "Organic Compounds with Nitrogen",
+            "hoursPerTopic": 2,
+            "topics": ["Amines", "Diazonium salts"]
+          },
+          {
+            "id": "biomolecules",
+            "name": "Biomolecules",
+            "hoursPerTopic": 2,
+            "topics": ["Carbohydrates", "Proteins", "Vitamins and nucleic acids"]
+          }
+        ]
+      },
+      {
+        "id": "botany",
+        "name": "Botany",
+        "units": [
+          {
+            "id": "diversity-in-the-living-world",
+            "name": "Diversity in the Living World",
+            "hoursPerTopic": 2,
+            "topics": ["What is living", "Biological classification: five kingdoms", "Plant kingdom"]
+          },
+          {
+            "id": "structural-organisation-in-plants",
+            "name": "Structural Organisation in Plants",
+            "hoursPerTopic": 2,
+            "topics": ["Morphology of flowering plants", "Anatomy of flowering plants"]
+          },
+          {
+            "id": "cell-structure-and-function",
+            "name": "Cell: Structure and Function",
+            "hoursPerTopic": 3,
+            "topics": ["Cell theory and cell organelles", "Biomolecules", "Cell cycle and cell division"]
+          },
+          {
+            "id": "plant-physiology",
+            "name": "Plant Physiology",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Transport in plants",
+              "Mineral nutrition",
+              "Photosynthesis",
+              "Respiration in plants",
+              "Plant growth and development"
+            ]
+          },
+          {
+            "id": "reproduction-in-plants",
+            "name": "Reproduction in Plants",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Sexual reproduction in flowering plants",
+              "Pollination and fertilisation",
+              "Seed and fruit development"
+            ]
+          },
+          {
+            "id": "genetics-and-evolution",
+            "name": "Genetics and Evolution",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Mendelian inheritance",
+              "Molecular basis of inheritance",
+              "Principles of inheritance and variation",
+              "Evolution"
+            ]
+          },
+          {
+            "id": "ecology-and-environment",
+            "name": "Ecology and Environment",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Organisms and populations",
+              "Ecosystem",
+              "Biodiversity and conservation",
+              "Environmental issues"
+            ]
+          },
+          {
+            "id": "biotechnology",
+            "name": "Biotechnology",
+            "hoursPerTopic": 2,
+            "topics": ["Principles and processes", "Applications of biotechnology"]
+          }
+        ]
+      },
+      {
+        "id": "zoology",
+        "name": "Zoology",
+        "units": [
+          {
+            "id": "animal-kingdom",
+            "name": "Animal Kingdom",
+            "hoursPerTopic": 2,
+            "topics": ["Basis of classification", "Non-chordates", "Chordates"]
+          },
+          {
+            "id": "structural-organisation-in-animals",
+            "name": "Structural Organisation in Animals",
+            "hoursPerTopic": 2,
+            "topics": ["Animal tissues", "Morphology and anatomy of frog and cockroach"]
+          },
+          {
+            "id": "human-physiology-digestion-breathing-and-circulation",
+            "name": "Human Physiology: Digestion, Breathing and Circulation",
+            "hoursPerTopic": 3,
+            "topics": ["Digestion and absorption", "Breathing and exchange of gases", "Body fluids and circulation"]
+          },
+          {
+            "id": "human-physiology-excretion-and-movement",
+            "name": "Human Physiology: Excretion and Movement",
+            "hoursPerTopic": 3,
+            "topics": ["Excretory products and their elimination", "Locomotion and movement"]
+          },
+          {
+            "id": "human-physiology-control-and-coordination",
+            "name": "Human Physiology: Control and Coordination",
+            "hoursPerTopic": 3,
+            "topics": ["Neural control and coordination", "Chemical coordination and integration"]
+          },
+          {
+            "id": "human-reproduction",
+            "name": "Human Reproduction",
+            "hoursPerTopic": 3,
+            "topics": [
+              "Human reproductive system",
+              "Gametogenesis and fertilisation",
+              "Pregnancy and embryonic development"
+            ]
+          },
+          {
+            "id": "reproductive-health",
+            "name": "Reproductive Health",
+            "hoursPerTopic": 2,
+            "topics": ["Reproductive health problems", "Contraception and fertility"]
+          },
+          {
+            "id": "human-health-and-disease",
+            "name": "Human Health and Disease",
+            "hoursPerTopic": 3,
+            "topics": ["Common diseases", "Immunity", "Cancer, AIDS and drug abuse"]
+          },
+          {
+            "id": "microbes-in-human-welfare",
+            "name": "Microbes in Human Welfare",
+            "hoursPerTopic": 2,
+            "topics": ["Microbes in household and industry", "Microbes in sewage and energy"]
+          }
+        ]
+      }
+    ]
+  }
+}

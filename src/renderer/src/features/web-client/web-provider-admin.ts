@@ -77,8 +77,8 @@ const CODE_LOGIN_POLL_MS = 3000;
  */
 const WEB_EXTERNAL_DESTINATIONS: Partial<Record<ExternalDestination, string>> = {
   "opencode-auth": "https://opencode.ai/auth",
-  feedback: "https://x.com/intent/post?text=Feedback%20for%20Jargon%20%40norbertbodziony%3A%20",
-  message: "https://x.com/norbertbodziony",
+  feedback: "https://x.com/intent/post?text=Feedback%20for%20Jargon%20%40vaibhav9526%3A%20",
+  message: "https://x.com/vaibhav9526",
   changelog: "https://jargon.run/changelog",
   guides: "https://jargon.run/guides",
   discord: "https://discord.jargon.run",

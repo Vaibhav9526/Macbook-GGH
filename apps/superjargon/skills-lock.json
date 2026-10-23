@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "pstack-skill": {
+      "source": "fabricioctelles/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pstack-skill/SKILL.md",
+      "computedHash": "e4cbeff92566d0aa5e258b280be942145646c49a290fa165e7c8aa4f7656a1bb"
+    }
+  }
+}

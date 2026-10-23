@@ -371,7 +371,7 @@ const LANDING_PREVIEW_DIRECT_THREADS: DirectThreadSummary[] = Object.values(LAND
   },
 );
 
-const LANDING_PREVIEW_EMAIL = "norbertbodziony@gmail.com";
+const LANDING_PREVIEW_EMAIL = "vaibhav9526@gmail.com";
 const LANDING_PREVIEW_PRESENCE = {
   ...STORY_PRESENCE,
   members: STORY_PRESENCE.members.map((member) =>

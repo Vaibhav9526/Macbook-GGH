@@ -1,0 +1,212 @@
+/* ══════════════════════════════════════════════════════════════════
+   Accessibility control center + Guide tab.
+
+   Look: layered dark surfaces like the design-system (--bg-raised cards on
+   the panel), 12px cards / 8px controls / 999px pills, one type scale
+   (page title from .main-h1, then 15 / 13 / 12), a single accent
+   (--a-on) used only for state: ON cards, the selected profile, switches.
+
+   Tokens: every colour comes from the --a-* custom properties below, so the
+   reading-aids palettes (which re-point --a-* on .a11y-dash) re-theme
+   everything. Derived tokens use color-mix() of the base ones for the
+   same reason. scripts/a11y-wcag-check.mts parses the plain #rrggbb --a-*
+   declarations in the first rule, so keep those as hex.
+
+   Contrast (computed): ink #eceeed / muted #adb5b2 on #202221 and #2e3130
+   >= 6:1; control border #8a918e >= 3:1 on both surfaces; focus ring
+   #7cc0ff >= 8:1; switch / accent fill #0a84ff >= 3:1 on the card.
+
+   ── For other tabs/components mounted in this page (e.g. <A11yShortcuts/>) ──
+   Wrap a block as:
+     <section className="a11y-section" aria-labelledby={id}>
+       <h2 className="a11y-section-title" id={id}>Title</h2>
+       <div className="a11y-card"> …content… </div>
+     </section>
+   Helpers: .a11y-row (label left, control right) + .a11y-row-label,
+   .a11y-table (a <table> with <th scope> headers and <td> cells),
+   <kbd> (key chip), .a11y-btn / .a11y-btn-quiet, .a11y-field (select/input),
+   .a11y-pill (value badge), .a11y-hint (small muted text), .a11y-sr (screen
+   reader only).
+   ══════════════════════════════════════════════════════════════════ */
+
+.a11y-dash, .guide {
+  --a-bg:#202221; --a-bg-2:#2e3130; --a-line:#8a918e;
+  --a-ink:#eceeed; --a-muted:#adb5b2; --a-focus:#7cc0ff; --a-on:#0a84ff;
+  --a-edge: color-mix(in srgb, var(--a-line) 38%, var(--a-bg));
+  --a-hover: color-mix(in srgb, var(--a-ink) 5%, var(--a-bg));
+  --a-tint: color-mix(in srgb, var(--a-on) 13%, var(--a-bg));
+  --a-warn: var(--a11y-warn, #ffb224);
+  --a-danger: var(--a11y-danger, #ff8a8a);
+  color-scheme: dark;
+}
+.a11y-dash * , .guide * { box-sizing: border-box; }
+.a11y-dash :is(button, select, input, summary):focus-visible { outline: 3px solid var(--a-focus); outline-offset: 2px; }
+.a11y-dash { max-width: 880px; font-size: 13px; }
+.guide { max-width: 760px; font-size: 13px; }
+
+/* ── Shared controls ─────────────────────────────────────────────── */
+.a11y-field { background: var(--a-bg-2); color: var(--a-ink); border: 1px solid var(--a-line); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 13px; min-height: 32px; max-width: 100%; }
+.a11y-btn { background: var(--a-ink); color: #111114; border: 1px solid var(--a-ink); border-radius: 999px; padding: 4px 14px; font: inherit; font-size: 12px; font-weight: 600; min-height: 32px; cursor: pointer; }
+.a11y-btn:disabled { background: transparent; color: var(--a-muted); border-color: var(--a-edge); cursor: default; opacity: .6; }
+.a11y-btn-quiet { background: transparent; color: var(--a-ink); border-color: var(--a-line); }
+.a11y-btn-quiet:not(:disabled):hover { background: var(--a-hover); }
+.a11y-card { background: var(--a-bg); color: var(--a-ink); border: 1px solid var(--a-edge); border-radius: 12px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,.28); }
+.a11y-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.a11y-pill { min-width: 52px; text-align: center; background: var(--a-bg-2); color: var(--a-ink); border: 1px solid var(--a-edge); border-radius: 999px; padding: 1px 8px; font-size: 12px; font-variant-numeric: tabular-nums; flex: none; }
+.a11y-dash kbd, .guide kbd { font: 600 11.5px var(--font-mono, ui-monospace, monospace); background: var(--a-bg-2); color: var(--a-ink); border: 1px solid var(--a-line); border-bottom-width: 2px; border-radius: 6px; padding: 0 6px; margin: 0 1px; white-space: nowrap; }
+
+/* ── Sections ────────────────────────────────────────────────────── */
+.a11y-section { margin: 0 0 24px; }
+.a11y-section-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 8px; }
+.a11y-section-title { margin: 0 0 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--a-muted); }
+.a11y-section-head .a11y-section-title { margin: 0; }
+.a11y-hint { color: var(--a-muted); font-size: 12px; margin: 0 0 12px; line-height: 1.5; }
+.a11y-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* ── Header ──────────────────────────────────────────────────────── */
+.a11y-header { margin-bottom: 24px; }
+.a11y-header .main-h1 { margin-bottom: 8px; }
+.a11y-status { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--a-muted); }
+.a11y-status strong { color: var(--a-ink); font-weight: 600; }
+.a11y-status-dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid var(--a-line); flex: none; }
+.a11y-status-dot[data-on="true"] { background: var(--a-on); border-color: var(--a-on); }
+
+/* ── Profile cards ───────────────────────────────────────────────── */
+.a11y-profiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 8px; }
+.a11y-chip { position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; font: inherit; color: var(--a-ink); background: var(--a-bg); border: 1px solid var(--a-edge); border-radius: 12px; padding: 16px; cursor: pointer; min-width: 0; box-shadow: 0 1px 2px rgba(0,0,0,.28); }
+.a11y-chip:hover { background: var(--a-hover); border-color: var(--a-line); }
+.a11y-chip[aria-pressed="true"], .a11y-chip-custom[data-active="true"] { background: var(--a-tint); border-color: var(--a-on); cursor: default; }
+.a11y-chip-custom { cursor: default; border-style: dashed; border-color: var(--a-line); box-shadow: none; background: transparent; }
+.a11y-chip-custom:hover { background: transparent; }
+.a11y-chip-custom[data-active="true"] { border-style: solid; box-shadow: 0 1px 2px rgba(0,0,0,.28); }
+.a11y-chip[aria-pressed="true"]::after, .a11y-chip-custom[data-active="true"]::after { content: "✓"; position: absolute; top: 12px; right: 14px; font-size: 13px; font-weight: 700; color: var(--a-on); }
+.a11y-chip-icon, .a11y-tile-icon, .guide-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--a-bg-2); color: var(--a-muted); flex: none; }
+.a11y-chip[aria-pressed="true"] .a11y-chip-icon, .a11y-chip-custom[data-active="true"] .a11y-chip-icon, .a11y-tile[data-on="true"] .a11y-tile-icon { background: var(--a-on); color: var(--a-bg); }
+.a11y-chip-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.a11y-chip-name { font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.a11y-chip-who { font-size: 12px; color: var(--a-muted); line-height: 1.4; }
+/* Narrow windows: profile cards become compact rows instead of tall stacked cards. */
+@media (max-width: 760px) {
+  .a11y-profiles { grid-template-columns: 1fr; }
+  .a11y-chip { flex-direction: row; align-items: center; padding: 12px 16px; }
+  .a11y-chip[aria-pressed="true"]::after, .a11y-chip-custom[data-active="true"]::after { top: 50%; transform: translateY(-50%); }
+}
+.a11y-profilebar-save { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; }
+.a11y-profilebar-label { color: var(--a-muted); font-size: 12px; }
+
+/* ── Rows (label left, control right) ────────────────────────────── */
+.a11y-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 32px; }
+.a11y-row-label { font-size: 13px; color: var(--a-ink); }
+.a11y-card.a11y-row { flex-wrap: wrap; }
+.a11y-card.a11y-row .a11y-slider { flex: 1 1 200px; }
+.a11y-slider { display: flex; align-items: center; gap: 8px; flex: 0 1 220px; min-width: 0; }
+.a11y-slider input[type="range"], .a11y-card input[type="range"] { flex: 1; min-width: 0; min-height: 24px; accent-color: var(--a-on); }
+
+/* ── Tool cards ──────────────────────────────────────────────────── */
+.a11y-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; }
+.a11y-tile { background: var(--a-bg); color: var(--a-ink); border: 1px solid var(--a-edge); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; box-shadow: 0 1px 2px rgba(0,0,0,.28); }
+.a11y-tile[data-on="true"] { background: var(--a-tint); border-color: var(--a-on); }
+.a11y-tile-head { display: flex; align-items: center; gap: 12px; }
+.a11y-tile-name { min-width: 0; flex: 1; }
+.a11y-tile-title { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
+.a11y-tile-blurb { margin: 2px 0 0; color: var(--a-muted); font-size: 12px; line-height: 1.4; }
+.a11y-tile-toggle { display: flex; align-items: center; gap: 8px; flex: none; }
+.a11y-tile-state { font-size: 12px; font-weight: 600; color: var(--a-muted); min-width: 22px; text-align: right; }
+.a11y-tile[data-on="true"] .a11y-tile-state { color: var(--a-ink); }
+
+.a11y-switch { position: relative; width: 44px; height: 24px; border-radius: 999px; border: 1px solid var(--a-line); background: var(--a-bg-2); cursor: pointer; padding: 0; flex: none; }
+.a11y-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--a-ink); }
+.a11y-switch[aria-checked="true"] { background: var(--a-on); border-color: var(--a-on); }
+.a11y-switch[aria-checked="true"]::after { left: 23px; background: var(--a-bg); }
+
+/* Options: an inset block of aligned rows, rendered only while the tool is on. */
+.a11y-options { display: flex; flex-direction: column; background: color-mix(in srgb, var(--a-bg) 70%, transparent); border: 1px solid var(--a-edge); border-radius: 8px; padding: 0 12px; }
+.a11y-options .a11y-row { padding: 6px 0; border-top: 1px solid var(--a-edge); }
+.a11y-options .a11y-row:first-child { border-top: 0; }
+/* Fixed label column so every control in the block starts at the same x. */
+.a11y-options .a11y-row-label { flex: 0 0 38%; min-width: 0; }
+.a11y-options .a11y-check .a11y-row-label { flex: 1 1 auto; }
+.a11y-options .a11y-slider, .a11y-options select.a11y-field { flex: 1 1 0; min-width: 0; }
+.a11y-check { cursor: pointer; }
+.a11y-check input { appearance: none; -webkit-appearance: none; width: 24px; height: 24px; margin: 0; border-radius: 8px; border: 2px solid var(--a-line); background: var(--a-bg-2); cursor: pointer; position: relative; flex: none; }
+.a11y-check input:checked { background: var(--a-on); border-color: var(--a-on); }
+.a11y-check input:checked::after { content: ""; position: absolute; left: 6px; top: 2px; width: 6px; height: 11px; border: solid var(--a-bg); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+
+/* Warnings: compact inline callout. */
+.a11y-callout { display: flex; align-items: flex-start; gap: 8px; margin: 0; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.45; color: var(--a-ink); background: color-mix(in srgb, var(--a-warn) 14%, var(--a-bg)); border: 1px solid color-mix(in srgb, var(--a-warn) 55%, var(--a-bg)); }
+.a11y-callout-icon { flex: none; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--a-warn); color: #111114; margin-top: 1px; }
+
+/* Footer: "What this does" disclosure on the left, order buttons on the right. */
+.a11y-tile-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--a-edge); }
+.a11y-info { display: inline-flex; align-items: center; gap: 4px; background: transparent; color: var(--a-muted); border: 0; border-radius: 8px; padding: 2px 8px 2px 4px; font: inherit; font-size: 12px; min-height: 28px; cursor: pointer; }
+.a11y-info:hover, .a11y-info[aria-expanded="true"] { color: var(--a-ink); background: var(--a-hover); }
+.a11y-info-panel { background: color-mix(in srgb, var(--a-bg) 70%, transparent); border: 1px solid var(--a-edge); border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.55; color: var(--a-muted); max-width: 68ch; }
+.a11y-info-panel p { margin: 0; }
+.a11y-info-panel p + p { margin-top: 8px; }
+.a11y-move { display: flex; gap: 4px; }
+.a11y-move .a11y-btn { width: 32px; padding: 0; min-height: 30px; display: grid; place-items: center; border-radius: 8px; font-weight: 500; background: var(--a-bg-2); border-color: transparent; }
+.a11y-move .a11y-btn:not(:disabled):hover { background: var(--a-hover); border-color: var(--a-line); }
+
+.a11y-error { display: flex; align-items: center; gap: 8px; color: var(--a-ink); background: color-mix(in srgb, var(--a-danger) 16%, var(--a-bg)); border: 1px solid var(--a-danger); border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; }
+
+.a11y-error-inline { flex-basis: 100%; margin: 4px 0 0; padding: 6px 12px; font-size: 12px; }
+
+/* Tables for mounted sections (shortcuts). */
+.a11y-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.a11y-table th, .a11y-table td { text-align: left; padding: 8px 8px 8px 0; border-top: 1px solid var(--a-edge); vertical-align: middle; }
+.a11y-table tr:first-child th, .a11y-table tr:first-child td { border-top: 0; }
+.a11y-table th { font-weight: 500; color: var(--a-ink); }
+.a11y-table td { color: var(--a-muted); }
+.a11y-table thead th { font-size: 12px; font-weight: 600; color: var(--a-muted); }
+
+/* Keyboard shortcuts section (A11yShortcuts) */
+.a11y-table td { vertical-align: middle; }
+.a11y-keys-unset { color: var(--a-muted); }
+.a11y-keys-warn { display: block; margin-top: 4px; color: var(--a-warn); font-size: 12px; }
+.a11y-keys-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.a11y-keys-foot { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.a11y-card .a11y-table { margin: -8px 0; width: 100%; }
+.a11y-card .a11y-table tr th:last-child, .a11y-card .a11y-table tr td:last-child { padding-right: 0; }
+
+/* Smooth state changes only when motion is welcome (the reducedMotion tile
+   also forces durations to ~0 via .a11y-reduced-motion). */
+@media (prefers-reduced-motion: no-preference) {
+  .a11y-tile, .a11y-chip, .a11y-switch, .a11y-switch::after, .a11y-tile-icon, .a11y-chip-icon, .a11y-btn, .a11y-info, .guide-item, .guide-chev {
+    transition: background-color .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease, transform .14s ease, left .14s ease;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   Guide tab (same tokens, same card language)
+   ══════════════════════════════════════════════════════════════════ */
+.guide-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.guide-searchbox { position: relative; flex: 1 1 240px; min-width: 0; }
+.guide-searchbox svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--a-muted); pointer-events: none; }
+.guide-search { width: 100%; background: var(--a-bg-2); color: var(--a-ink); border: 1px solid var(--a-line); border-radius: 999px; padding: 4px 14px 4px 36px; font: inherit; font-size: 13px; min-height: 36px; }
+.guide-btn { background: transparent; color: var(--a-ink); border: 1px solid var(--a-line); border-radius: 999px; padding: 4px 14px; font: inherit; font-size: 12px; font-weight: 600; min-height: 36px; cursor: pointer; }
+.guide-btn:hover { background: var(--a-hover); }
+.guide-count { color: var(--a-muted); font-size: 12px; margin: 0 0 12px; min-height: 1.4em; }
+.guide-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.guide-item { background: var(--a-bg); color: var(--a-ink); border: 1px solid var(--a-edge); border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.28); }
+.guide-item:has(.guide-toggle[aria-expanded="true"]) { border-color: var(--a-line); }
+.guide-h { margin: 0; font-size: 15px; font-weight: 600; }
+.guide-toggle { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; color: var(--a-ink); border: 0; border-radius: 12px; padding: 12px 16px; font: inherit; cursor: pointer; min-height: 56px; }
+.guide-toggle:hover { background: var(--a-hover); }
+.guide-toggle[aria-expanded="true"] .guide-icon { background: var(--a-on); color: var(--a-bg); }
+.guide-text { flex: 1; min-width: 0; }
+.guide-chev { flex: none; border-right: 2px solid var(--a-muted); border-bottom: 2px solid var(--a-muted); width: 8px; height: 8px; transform: rotate(-45deg); margin: 0 4px; }
+.guide-toggle[aria-expanded="true"] .guide-chev { transform: rotate(45deg); }
+.guide-title { display: block; font-weight: 600; font-size: 15px; letter-spacing: -.01em; }
+.guide-sum { display: block; color: var(--a-muted); font-size: 12px; font-weight: 400; margin-top: 2px; }
+.guide-body { padding: 4px 16px 16px 64px; font-size: 13px; line-height: 1.6; color: var(--a-ink); }
+.guide-body > * { max-width: 68ch; }
+.guide-body p { margin: 0 0 12px; }
+.guide-body ul, .guide-body ol { margin: 0 0 12px; padding-left: 20px; }
+.guide-body li { margin-bottom: 6px; }
+.guide-body li::marker { color: var(--a-muted); }
+.guide-body dl { margin: 0 0 12px; }
+.guide-body dt { font-weight: 600; margin-top: 12px; }
+.guide-body dd { margin: 2px 0 0; color: var(--a-muted); }
+.guide-empty { color: var(--a-muted); }
+.guide-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 520px) { .guide-body { padding-left: 16px; } }

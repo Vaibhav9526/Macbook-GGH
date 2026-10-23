@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SuperJargon Magnifier</title>
+  <style>
+    html, body { background: #000; margin: 0; height: 100%; overflow: hidden; cursor: none; }
+    video { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; display: block;
+      transform-origin: 0 0; will-change: transform; background: #000; object-fit: fill;
+      visibility: hidden; }
+    video.live { visibility: visible; }
+  </style>
+</head>
+<body>
+  <video id="a" muted playsinline aria-label="Magnified view"></video>
+  <video id="b" muted playsinline aria-hidden="true"></video>
+  <script type="module" src="./lens.ts"></script>
+</body>
+</html>
