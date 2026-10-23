@@ -35,16 +35,16 @@
     "@types/react-dom": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
-    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
     "concurrently": "^9.0.0",
-    "electron": "^33.0.0",
-    "electron-builder": "^25.0.0",
+    "electron": "^44.9.1",
+    "electron-builder": "^26.17.0",
     "eslint": "^9.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "typescript": "^5.7.0",
-    "vite": "^6.0.0",
-    "vite-plugin-electron": "^0.28.0"
+    "vite": "^7.3.7",
+    "vite-plugin-electron": "^0.29.1"
   },
   "build": {
     "appId": "com.superjargon.app",
