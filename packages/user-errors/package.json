@@ -1,0 +1,22 @@
+{
+  "name": "@jargon/user-errors",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./reference": "./src/reference.ts"
+  },
+  "scripts": {
+    "typecheck": "bun ../../scripts/type-checker.ts --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@jargon/contracts": "workspace:*",
+    "@jargon/i18n": "workspace:*",
+    "@jargon/logging": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

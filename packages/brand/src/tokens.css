@@ -1,0 +1,422 @@
+/*
+ * Every --jargon-* token in the product is written here, once. The desktop
+ * renderer, the public web app and the mobile app all @import this file; none of
+ * them declares a token of its own. That was not true until recently - the same
+ * names lived in three files that no single commit had ever touched together, so
+ * the web palette was a frozen snapshot of a desktop palette that had moved on by
+ * two hundred tokens, and a token added for one surface was simply absent on the
+ * other two. Keep this file the only declaration site.
+ *
+ * The values here are the base, always-dark palette. Mobile is the one surface
+ * with a light theme; it layers tokens-native.css on top of this file.
+ */
+
+:root {
+  --jargon-provider-current: currentcolor;
+  /* Main screen canvas and drawer, used by the native app. */
+  --jargon-bg-native-canvas: #141414;
+  --jargon-bg-native-sidebar: #141414;
+  /* Grouped sheet surfaces, used by the native app. */
+  --jargon-bg-sheet: #141414;
+  --jargon-bg-grouped: #212121;
+  --jargon-text-grouped-secondary: #96969b;
+  --jargon-border-grouped: #333335;
+  --jargon-radius-grouped: 16px;
+  /* The milky chrome of the native app where it has no Liquid Glass: the search field and bar buttons. */
+  --jargon-bg-chrome-glass: rgba(38, 38, 40, 0.96);
+  --jargon-border-chrome-glass: rgba(255, 255, 255, 0.08);
+  /* The fill of that chrome over a real blur, lighter than the solid glass. */
+  --jargon-bg-chrome-blur: rgba(26, 26, 28, 0.62);
+
+  /* Neutral color system. Keep UI colors here, not in components. */
+  --jargon-bg-canvas: #1a1a1a;
+  --jargon-bg-canvas-clear: rgba(26, 26, 26, 0);
+  --jargon-bg-sidebar: #1a1a1a;
+  --jargon-marketplace-detail-bg: #111111;
+  --jargon-bg-surface: #212121;
+  --jargon-bg-surface-raised: #242424;
+  --jargon-bg-control: #212121;
+  --jargon-bg-control-hover: #242424;
+  --jargon-bg-control-active: #2a2a2a;
+  --jargon-tabs-bar-bg: #212121;
+  --jargon-tabs-pill-bg: #2a2a2a;
+  --jargon-bg-overlay: rgba(26, 26, 26, 0.92);
+  --jargon-dialog-overlay: rgba(0, 0, 0, 0.1);
+  --jargon-dialog-ring: rgba(255, 255, 255, 0.1);
+  --jargon-bg-glass: rgba(33, 33, 33, 0.76);
+
+  /* Landing-page glass surfaces. Public web only, but declared here so the
+     next person to reach for a translucent panel finds one already named. */
+  --jargon-glass-surface: rgba(255, 255, 255, 0.07);
+  --jargon-glass-surface-hover: rgba(255, 255, 255, 0.11);
+  --jargon-glass-border: rgba(255, 255, 255, 0.18);
+  --jargon-glass-highlight: rgba(255, 255, 255, 0.12);
+  --jargon-glass-shadow: rgba(0, 0, 0, 0.28);
+  --jargon-hero-grid-line: rgba(214, 173, 242, 0.09);
+
+  /* The landing price figure, and nothing else: a dark glass "$0" lit by one soft
+     iridescent band. These are a material, not aliases of the neutral palette -
+     the body sits a shade either side of the canvas so the glyph reads as a solid
+     object, and the band is the only warm/cool pair on the page. */
+  --jargon-price-metal-high: #4c4c4c;
+  --jargon-price-metal-core: #1f1f1f;
+  --jargon-price-metal-low: #343434;
+  --jargon-price-sheen-cool: rgba(150, 196, 255, 0.92);
+  --jargon-price-sheen-light: rgba(240, 244, 250, 0.98);
+  --jargon-price-sheen-warm: rgba(255, 184, 132, 0.94);
+  /* The band has to fade out through its own hue. Fading to --jargon-transparent
+     would interpolate towards transparent *black* and leave a dirty grey halo
+     above and below the light. */
+  --jargon-price-sheen-cool-soft: rgba(150, 196, 255, 0.26);
+  --jargon-price-sheen-warm-soft: rgba(255, 184, 132, 0.28);
+  --jargon-price-sheen-cool-clear: rgba(150, 196, 255, 0);
+  --jargon-price-sheen-warm-clear: rgba(255, 184, 132, 0);
+  --jargon-price-rim: rgba(255, 255, 255, 0.28);
+  --jargon-price-rim-under: rgba(255, 255, 255, 0.1);
+  --jargon-price-glow: rgba(180, 200, 255, 0.22);
+  --jargon-bg-host-inset: #101216;
+  --jargon-bg-notch: #000000;
+  --jargon-mask-solid: #000000;
+  --jargon-transparent: rgba(0, 0, 0, 0);
+  --jargon-drawer-scrim: #000000;
+  --jargon-scroll-edge-overlay: rgba(0, 0, 0, 0.72);
+  --jargon-queue-surface: var(--jargon-bg-surface);
+  --jargon-queue-border: var(--jargon-border-strong);
+  --jargon-queue-text: var(--jargon-text-primary);
+  --jargon-queue-action: var(--jargon-text-muted);
+  --jargon-border: rgba(255, 255, 255, 0.035);
+  --jargon-border-strong: rgba(255, 255, 255, 0.045);
+  --jargon-image-outline: rgba(255, 255, 255, 0.1);
+  --jargon-border-focus: rgba(0, 124, 247, 0.72);
+  --jargon-text-primary: #ffffff;
+  --jargon-text-on-light: #141414;
+  --jargon-surface-light: #f0f0f0;
+  /* Not a duplicate of surface-light/text-on-light: tokens-native.css swaps this pair
+     between the mobile light and dark themes, so it is the high-contrast button that
+     inverts with the theme. Only mobile's uniwind mapping reads it. */
+  --jargon-action: #f0f0f0;
+  --jargon-action-foreground: #141414;
+  --jargon-qr-background: #ffffff;
+  --jargon-onboarding-desktop-mist: #dbe9ff;
+  --jargon-onboarding-desktop-blue: #7eb4f2;
+  --jargon-onboarding-desktop-indigo: #6f7de8;
+  /* The dither tiles of the sound theme picker: a back and an ink color for each sound theme. */
+  --jargon-sound-warm-back: #d95926;
+  --jargon-sound-warm-ink: #f2c46b;
+  --jargon-sound-mech-back: #1f1f1f;
+  --jargon-sound-mech-ink: #dbe9ff;
+  --jargon-sound-bubble-back: #5b5fe0;
+  --jargon-sound-bubble-ink: #8bdee8;
+  --jargon-sound-press-back: #ff1e5e;
+  --jargon-sound-press-ink: #ffd8a8;
+  --jargon-sound-off-back: #212121;
+  --jargon-sound-off-ink: #4c4c4c;
+  --jargon-onboarding-window: #f3f5f8;
+  --jargon-text-secondary: #dcdcdc;
+  --jargon-text-muted: #979797;
+  --jargon-text-dim: #6a6a6a;
+  --jargon-text-readable: rgba(255, 255, 255, 0.52);
+  --jargon-text-muted-on-light: rgba(20, 20, 20, 0.52);
+  --jargon-text-dim-on-light: rgba(20, 20, 20, 0.36);
+  --jargon-download-card-muted: rgba(20, 20, 20, 0.68);
+  --jargon-download-card-chip: rgba(20, 20, 20, 0.1);
+  --jargon-download-card-border: rgba(20, 20, 20, 0.16);
+  --jargon-download-card-focus: rgba(242, 242, 242, 0.86);
+  --jargon-text-placeholder: #bfbfbf;
+  --jargon-text-on-accent: #ffffff;
+  --jargon-text-on-status: #07130c;
+  /* Hue 210, sampled from the reference UIs rather than picked: their status dot is
+     #007cf7 and their link and section headings are #42a0ff, both hue 210. The palette
+     sat at hue 206, which reads cyan next to them, and accent-text was 71% light,
+     which reads washed out. */
+  --jargon-accent: #007cf7;
+  --jargon-accent-hover: #1f8fff;
+  --jargon-accent-text: #42a0ff;
+  --jargon-accent-soft: rgba(0, 124, 247, 0.16);
+  --jargon-accent-strong: rgba(0, 124, 247, 0.34);
+  --jargon-settings-text-muted: rgba(255, 255, 255, 0.59);
+  --jargon-provider-codex: var(--jargon-text-primary);
+  --jargon-provider-claude: #d97757;
+  --jargon-provider-grok: var(--jargon-text-primary);
+  /* The Gemini brand colour that Simple Icons gives. */
+  --jargon-provider-antigravity: #8e75b2;
+  /* A chart series needs a hue of its own: the logo colours above give codex and grok the
+     same white, which no reader can tell apart in two overlaid areas. Validated together
+     with the dataviz skill's checker -
+     node scripts/validate_palette.js "#d6adf2,#d97757,#6bc7d9" --mode dark --surface "#1a1a1a"
+     - for colour-vision separation and contrast on the canvas. */
+  --jargon-chart-series-codex: #d6adf2;
+  --jargon-chart-series-claude: var(--jargon-provider-claude);
+  --jargon-chart-series-grok: #6bc7d9;
+  --jargon-chart-series-other: var(--jargon-text-muted);
+  /* The storage bar: five hues in this fixed order, then neutral app data. Validated with
+     node scripts/validate_palette.js "#3987e5,#d95926,#199e70,#9085e9,#c98500" --mode dark --surface "#1a1a1a"
+     and again on #212121. */
+  --jargon-chart-storage-workspaces: #3987e5;
+  --jargon-chart-storage-files: #d95926;
+  --jargon-chart-storage-chats: #199e70;
+  --jargon-chart-storage-downloads: #9085e9;
+  --jargon-chart-storage-runtimes: #c98500;
+  --jargon-chart-storage-app: var(--jargon-text-dim);
+  --jargon-logo-production: #d6adf2;
+  --jargon-logo-eye: #040007;
+  /* The eyes of the release logo. The logo color setting changes it with `--jargon-logo-production`;
+     a dev or preview logo keeps `--jargon-logo-eye`. */
+  --jargon-logo-production-eye: var(--jargon-logo-eye);
+  /* The build colors of the logo match the app icons in `build/icon-*.png`, so the Dock, the app
+     and the Dynamic Island show one color for each build. They are brand colors, not status
+     colors: a change to warning or success does not change them. */
+  --jargon-logo-dev: #e3b866;
+  --jargon-logo-preview: #61c985;
+  --jargon-unread-surface: #74b9ff;
+  --jargon-unread-text: #07131f;
+  /* The last hue that had not been retuned with the rest. #61c985 was OKLCH chroma
+     0.139 while accent, warning and danger now average 0.205, so green was the one
+     family member that still read as a disabled tint beside them. Matching 0.205 is
+     not possible: sRGB tops out at 0.195 along this hue, and that ceiling value
+     (#00d271) is a neon with no headroom, which every renderer clips differently.
+     0.180 is the usable step, and lightness is held at the old 0.756 so contrast on
+     the canvas is unchanged at 8.5:1 and no text legibility moves. */
+  --jargon-success: #31cf76;
+  /* Status text sits on neutral surfaces; status fills have separate contrast needs. */
+  --jargon-success-text: #31cf76;
+  --jargon-warning-text: #ff9412;
+  --jargon-danger-text: #ff6069;
+  --jargon-success-soft: rgba(49, 207, 118, 0.12);
+  --jargon-success-wash: rgba(49, 207, 118, 0.045);
+  /* Both warning marks in the reference measure hue 33 at full saturation (#ff9917 on
+     the triangle, #ff9412 on the heading). The palette's #e3b866 was a desaturated gold
+     at hue 39, which reads as a disabled state rather than as something needing attention. */
+  --jargon-warning: #ff9412;
+  --jargon-warning-soft: rgba(255, 148, 18, 0.12);
+  --jargon-question-option: #6bc7d9;
+  --jargon-question-option-soft: rgba(107, 199, 217, 0.14);
+  --jargon-question-option-hover: rgba(107, 199, 217, 0.2);
+  --jargon-question-option-pressed: rgba(107, 199, 217, 0.26);
+  --jargon-island-identity-name: var(--jargon-text-primary);
+  --jargon-question-badge-text: #8bdee8;
+  --jargon-question-badge-soft: rgba(107, 199, 217, 0.16);
+  --jargon-message-badge-text: #91c8ff;
+  --jargon-message-badge-soft: rgba(116, 185, 255, 0.16);
+  /* The "new thing is available" pill. It is deliberately not --jargon-accent: an
+     announcement is not an action. */
+  --jargon-badge-new: #ff1e5e;
+  --jargon-badge-new-soft: rgba(255, 30, 94, 0.16);
+  /* The moving border of an offer, such as the hosted server offer: teal, blue, then pink. */
+  --jargon-beam-teal: var(--jargon-file-teal);
+  --jargon-beam-blue: var(--jargon-accent-text);
+  --jargon-beam-pink: var(--jargon-file-pink);
+  --jargon-approval-badge-soft: rgba(255, 148, 18, 0.18);
+  /* One red. The palette carried four families - danger (#e47d75), danger-strong
+     (#ff4058), settings-danger (#eb4145) and button-destructive (oklch, #ff6467) -
+     all between hue 352 and 359, i.e. the same red at four saturations, and the
+     settings family existed only to re-override button-destructive inside one modal.
+     #fd2f3b is the reference's count badge. The five steps below are roles, not
+     shades: solid fill, its hover, tinted fill, its hover, ring, border. */
+  --jargon-danger: #fd2f3b;
+  --jargon-danger-hover: #fd5d67;
+  --jargon-danger-soft: rgba(253, 47, 59, 0.16);
+  --jargon-danger-soft-hover: rgba(253, 47, 59, 0.28);
+  --jargon-danger-focus: rgba(253, 47, 59, 0.4);
+  --jargon-danger-border: rgba(253, 47, 59, 0.5);
+  /* Literal values: the mobile themes repeat these in tokens-native.css, where var() resolves to
+   * nothing. They equal warning, question-option, success, danger and accent-text. */
+  --jargon-file-blue: #74b9ff;
+  --jargon-file-blue-soft: rgba(116, 185, 255, 0.14);
+  --jargon-file-yellow: #ff9412;
+  --jargon-file-yellow-soft: rgba(255, 148, 18, 0.12);
+  --jargon-file-orange: #f0a06a;
+  --jargon-file-orange-soft: rgba(240, 160, 106, 0.14);
+  --jargon-file-teal: #6bc7d9;
+  --jargon-file-teal-soft: rgba(107, 199, 217, 0.14);
+  --jargon-file-green: #31cf76;
+  --jargon-file-green-soft: rgba(49, 207, 118, 0.12);
+  --jargon-file-red: #fd2f3b;
+  --jargon-file-red-soft: rgba(253, 47, 59, 0.16);
+  --jargon-file-pink: #d98ac9;
+  --jargon-file-pink-soft: rgba(217, 138, 201, 0.14);
+  --jargon-file-default: #42a0ff;
+  --jargon-file-default-soft: rgba(0, 124, 247, 0.14);
+  --jargon-data-table-border: #303030;
+  --jargon-data-table-header-text: #a1a1a1;
+  --jargon-data-table-text: #f5f5f5;
+  --jargon-data-table-outer-border: rgba(255, 255, 255, 0);
+  --jargon-data-table-ring: rgba(255, 255, 255, 0.12);
+  --jargon-shadow-popover-ambient: rgba(0, 0, 0, 0.1);
+  --jargon-shadow-dialog: rgba(0, 0, 0, 0.48);
+  --jargon-shadow-dynamic-island: rgba(0, 0, 0, 0.6);
+  --jargon-shadow-ring: rgba(228, 228, 228, 0.04);
+  --jargon-border-on-light: rgba(20, 20, 20, 0.14);
+  --jargon-hover: rgba(255, 255, 255, 0.06);
+  --jargon-font-sans: "Inter Variable", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --jargon-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  /* Six steps, one line-height each, named for the step it pairs with. The scale had
+   * sixteen sizes and eight line-heights, four of them a single call site, which is how
+   * an 11px size ended up paired with a 26px line-height. scripts/ui-foundation-check.ts
+   * holds "untokenized font-size" at zero, so a size that is not here has nowhere to go. */
+  --jargon-text-sm: 12px;
+  --jargon-text-md: 13px;
+  --jargon-text-lg: 14px;
+  --jargon-text-xl: 16px;
+  --jargon-text-2xl: 18px;
+  --jargon-text-3xl: 24px;
+  --jargon-leading-sm: 16px;
+  --jargon-leading-md: 18px;
+  --jargon-leading-lg: 20px;
+  --jargon-leading-xl: 22px;
+  --jargon-leading-2xl: 24px;
+  --jargon-leading-3xl: 30px;
+
+  /* Not scale steps, and named for their surface so they do not read as one. Three
+   * full-bleed screens (login wordmark, first-run setup, onboarding) and the public
+   * landing page carry type above 24px; .landing-hero-logo is sized in em off
+   * --jargon-text-hero, so that token is layout, not just type. */
+  --jargon-text-display: 32px;
+  --jargon-text-usage-total: clamp(2rem, 5cqi, 3.5rem);
+  --jargon-leading-display: 38px;
+  --jargon-text-hero: clamp(3rem, 8vw, 6.5rem);
+
+  /* Glyphs, not copy: a file-extension string inside a fixed 16-24px chip. Below the
+   * scale's floor because the container is fixed, not because the text is small. Outside
+   * the text-* namespace so text-* means exactly the six steps above. */
+  --jargon-glyph-xs: 7px;
+  --jargon-glyph-sm: 8px;
+
+  --jargon-weight-regular: 400;
+  --jargon-weight-medium: 500;
+  --jargon-weight-semibold: 600;
+  --jargon-weight-bold: 700;
+  --jargon-tracking-tight: -0.1px;
+  --jargon-tracking-normal: 0;
+  --jargon-tracking-wide: 0.02em;
+  --jargon-space-0-5: 2px;
+  --jargon-space-1: 4px;
+  --jargon-space-1-5: 6px;
+  --jargon-space-2: 8px;
+  --jargon-space-3: 12px;
+  --jargon-space-4: 16px;
+  --jargon-space-6: 24px;
+  --jargon-space-8: 32px;
+  --jargon-scrollbar-size: 8px;
+  --jargon-radius-xs: 4px;
+  --jargon-radius-sm: 6px;
+  --jargon-radius-md: 8px;
+  --jargon-radius-lg: 12px;
+  --jargon-radius-card: 14px;
+  --jargon-radius-xl: 20px;
+  --jargon-radius-bubble: 22px;
+  --jargon-radius-bubble-inset: calc(var(--jargon-radius-bubble) - var(--jargon-space-3) - 1px);
+  --jargon-radius-modal: 30px;
+  --jargon-radius-media-preview: calc(var(--jargon-radius-lg) - 1px);
+  --jargon-radius-pill: 999px;
+  --jargon-radius-logo: 20%;
+  --jargon-control-xs: 24px;
+  --jargon-control-sm: 28px;
+  --jargon-control-md: 32px;
+  --jargon-control-lg: 36px;
+  --jargon-control-xl: 40px;
+  /* The switch follows the same compact pill proportions across desktop and web.
+   * Keep its geometry named so the motion code can measure the same inset and travel
+   * that CSS paints. */
+  --jargon-switch-width: 36px;
+  --jargon-switch-height: 20px;
+  --jargon-switch-thumb: 16px;
+  --jargon-switch-inset: 2px;
+  --jargon-switch-sm-width: 24px;
+  --jargon-switch-sm-height: 14px;
+  --jargon-switch-sm-thumb: 12px;
+  --jargon-switch-sm-inset: 1px;
+  /* Unitless on purpose. Lucide icons carry viewBox="0 0 24 24", so CSS stroke-width
+   * resolves in user units, not px: a literal 1px paints 1 * (16/24) = 0.67 device px at
+   * the 16px default size and reads blurry. 1.5 user units is the 1px the design asks for.
+   *
+   * Which is also why three kinds of SVG keep a weight of their own rather than reading
+   * this: the hand-written icons under src/renderer/src/features draw on a 16- or 20-unit
+   * viewBox, so the same number paints a different device weight there; the onboarding
+   * computer is a drawing, not an icon; and the checkbox tick would come out at 0.75
+   * device px inside its 12px box. Every lucide icon in the renderer reads this token. */
+  --jargon-icon-stroke: 1.5;
+  --jargon-icon-xs: 12px;
+  --jargon-icon-sm: 14px;
+  --jargon-icon-md: 16px;
+  --jargon-icon-lg: 20px;
+  --jargon-chat-entry-gap: var(--jargon-space-3);
+  --jargon-chat-marker-gap: var(--jargon-space-1);
+  --jargon-chat-marker-height: var(--jargon-control-xs);
+  --jargon-chat-marker-avatar: var(--jargon-icon-md);
+  /* Keep container-relative calculations at the CSS use site for native consumers. */
+  --jargon-chat-marker-width: 680px;
+  --jargon-duration-fast: 120ms;
+  --jargon-duration-hover: 0ms;
+  --jargon-duration-dialog: 100ms;
+  --jargon-duration-normal: 160ms;
+  --jargon-duration-slow: 200ms;
+  --jargon-duration-overlay: 240ms;
+  --jargon-duration-toast-enter: 340ms;
+  --jargon-duration-toast-exit: 220ms;
+  --jargon-duration-island-content: 340ms;
+  --jargon-duration-island-content-exit: 220ms;
+  --jargon-agent-activity-exit-delay: 500ms;
+  /* A loading indicator waits this long, so a fast answer replaces it before it shows. */
+  --jargon-loading-indicator-delay: 400ms;
+  --jargon-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --jargon-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --jargon-shadow-raised: 0 12px 32px var(--jargon-shadow-popover-ambient);
+  --jargon-shadow-card: 0 0 0 transparent;
+  --jargon-shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.48);
+  --jargon-focus-ring: 0 0 0 3px var(--jargon-accent-soft);
+  --jargon-layer-dropdown: 40;
+  --jargon-layer-popover: 60;
+  --jargon-layer-dialog: 100;
+  /* A dialog that opens other surfaces over itself, such as the marketplace. Its own menus take
+     one above it, and a dialog it opens takes two, so the order is stated once here instead of
+     being re-derived by arithmetic at each surface - where a tie is decided by insertion order,
+     and the surface opened last wins only by accident. */
+  --jargon-layer-dialog-host: calc(var(--jargon-layer-dialog) + var(--jargon-layer-popover));
+  --jargon-layer-toast: 120;
+  /* A tooltip names the control under the pointer. It shows above every other layer, also above
+     a dialog or a menu that holds the control. */
+  --jargon-layer-tooltip: 240;
+}
+
+/* Every surface that paints a provider - the picker mark, the update toast and its progress bar,
+   the usage icon, the account picker, the landing page - used to carry one rule per provider per
+   surface, so a new provider meant ten new rules across five stylesheets before it had a colour.
+   These rules are the only place a provider id meets its colour; a surface writes
+   `data-provider` on the element and reads `--jargon-provider-current`. A provider with no rule
+   here falls back to the current text colour rather than to another provider's brand. */
+[data-provider] {
+  --jargon-provider-current: currentcolor;
+}
+
+[data-provider="codex"] {
+  --jargon-provider-current: var(--jargon-provider-codex);
+}
+
+[data-provider="claude"] {
+  --jargon-provider-current: var(--jargon-provider-claude);
+}
+
+[data-provider="grok"] {
+  --jargon-provider-current: var(--jargon-provider-grok);
+}
+
+[data-provider="opencode"] {
+  --jargon-provider-current: var(--jargon-text-primary);
+}
+
+[data-provider="antigravity"] {
+  --jargon-provider-current: var(--jargon-provider-antigravity);
+}
+
+[data-provider="cursor"] {
+  --jargon-provider-current: var(--jargon-text-primary);
+}
+
+[data-provider="cline"] {
+  --jargon-provider-current: var(--jargon-text-primary);
+}
+
+[data-provider="acp"] {
+  --jargon-provider-current: var(--jargon-text-primary);
+}
